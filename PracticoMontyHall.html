@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monty Hall - Estadística UNVM</title>
+    <!-- Incluir Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluir Chart.js para las gráficas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- Configuración de estilos Tailwind -->
+    <style>
+        @import url('https://fonts.fonts.google.com/share?selection=family:Inter:wght@100..900&subsets=latin-ext');
+        body { font-family: 'Inter', sans-serif; }
+        .door-icon {
+            font-size: 4rem;
+            line-height: 1;
+            transition: all 0.3s ease;
+        }
+        /* Estilos personalizados para la carga */
+        .loading-spinner {
+            border-top-color: #1e40af; /* blue-800 */
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        /* Estilos para las puertas interactivas */
+        .door-closed {
+            background-color: #374151; /* gray-700 */
+            cursor: pointer;
+            transform: scale(1.0);
+        }
+        .door-closed:hover {
+            background-color: #4b5563; /* gray-600 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        .door-selected {
+            background-color: #f59e0b; /* yellow-500 */
+            box-shadow: 0 0 0 4px #f59e0b;
+        }
+        .door-opened-goat {
+            background-color: #ef4444; /* red-500 */
+            cursor: default;
+        }
+        .door-opened-car {
+            background-color: #10b981; /* emerald-500 */
+            cursor: default;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8 text-gray-800">
+
+    <div class="max-w-6xl mx-auto">
+        
+        <!-- ENCABEZADO INSTITUCIONAL UNVM -->
+        <header class="bg-white shadow-md rounded-xl p-8 mb-8 border-t-8 border-blue-900 relative overflow-hidden">
+            <!-- Decoración de fondo sutil -->
+            <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-blue-50 rounded-full opacity-50 blur-xl"></div>
+            <div class="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-yellow-50 rounded-full opacity-50 blur-xl"></div>
+
+            <div class="relative z-10 flex flex-col items-center text-center">
+                <!-- Logo con la URL proporcionada -->
+                <img src="https://comunicacioninstitucional.unvm.edu.ar/wp-content/uploads/2019/12/isologotipo-uso-basico.jpg" 
+                     onerror="this.onerror=null; this.src='https://placehold.co/240x96/1e40af/ffffff?text=UNVM';"
+                     alt="Isologotipo UNVM" 
+                     class="h-24 mb-6 object-contain drop-shadow-sm">
+                
+                <!-- 1. Instituto -->
+                <h2 class="text-sm md:text-base font-bold text-gray-500 uppercase tracking-widest mb-2">
+                    Instituto Académico Pedagógico de Ciencias Sociales
+                </h2>
+                
+                <!-- 2. Espacio Curricular (Nueva línea) -->
+                <h3 class="text-xl md:text-2xl font-semibold text-blue-800 mb-4">
+                    Espacio Curricular: Estadística y Probabilidad
+                </h3>
+
+                <!-- 3. Título del TP -->
+                <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 tracking-tight">
+                    El Dilema de Monty Hall
+                </h1>
+
+                <!-- Separador -->
+                <div class="w-16 h-1 bg-yellow-500 rounded mb-4"></div>
+                
+                <!-- 4. Docente (Nueva línea) -->
+                <p class="text-lg md:text-xl font-medium text-gray-700 mb-0">
+                    Docente: Germán Torres
+                </p>
+                
+            </div>
+        </header>
+
+        <!-- SECCIÓN 1: SIMULACIÓN INTERACTIVA (Juego Individual) -->
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8 border border-gray-200">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-800 text-sm font-bold px-2 py-1 rounded">Fase 1</span>
+                    Simulación Experimental
+                </h2>
+                <span class="text-sm text-gray-500 hidden sm:block">Prueba tu intuición</span>
+            </div>
+
+            <!-- Área de Mensajes -->
+            <div id="interactiveMessage" class="mb-8 p-4 rounded-lg text-center font-medium text-lg text-blue-900 bg-blue-50 border border-blue-200 transition-all duration-300 shadow-sm">
+                Haz clic en "Jugar de Nuevo" para empezar.
+            </div>
+
+            <!-- Contenedor de Puertas -->
+            <div class="flex justify-center gap-4 sm:gap-8 mb-8">
+                <!-- Puerta 1 -->
+                <div id="door-1" data-door="1" class="door-closed w-28 sm:w-32 h-40 sm:h-48 flex flex-col items-center justify-center rounded-lg shadow-lg transition-all" onclick="handleDoorClick(1)">
+                    <span class="door-icon text-white drop-shadow-md">🚪</span>
+                    <p class="text-sm font-bold text-white mt-2">Puerta 1</p>
+                </div>
+                <!-- Puerta 2 -->
+                <div id="door-2" data-door="2" class="door-closed w-28 sm:w-32 h-40 sm:h-48 flex flex-col items-center justify-center rounded-lg shadow-lg transition-all" onclick="handleDoorClick(2)">
+                    <span class="door-icon text-white drop-shadow-md">🚪</span>
+                    <p class="text-sm font-bold text-white mt-2">Puerta 2</p>
+                </div>
+                <!-- Puerta 3 -->
+                <div id="door-3" data-door="3" class="door-closed w-28 sm:w-32 h-40 sm:h-48 flex flex-col items-center justify-center rounded-lg shadow-lg transition-all" onclick="handleDoorClick(3)">
+                    <span class="door-icon text-white drop-shadow-md">🚪</span>
+                    <p class="text-sm font-bold text-white mt-2">Puerta 3</p>
+                </div>
+            </div>
+
+            <!-- Controles -->
+            <div class="flex flex-col items-center space-y-4">
+                <!-- Botones de Decisión -->
+                <div id="decisionControls" class="flex gap-4 hidden animate-fade-in">
+                    <button onclick="handleFinalDecision('stay')" class="py-2 px-6 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg shadow-md transition transform hover:scale-105">
+                        Mantener
+                    </button>
+                    <button onclick="handleFinalDecision('switch')" class="py-2 px-6 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-md transition transform hover:scale-105">
+                        Cambiar
+                    </button>
+                </div>
+
+                <!-- Botón de Reinicio -->
+                <button id="restartInteractive" onclick="startInteractiveGame()" class="py-2 px-8 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-full shadow-md transition duration-200 flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> Jugar de Nuevo
+                </button>
+            </div>
+            
+            <!-- Estadísticas de la Sesión -->
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 text-center">Tus Estadísticas de Sesión</h3>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div class="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                        <p class="text-xs font-semibold text-gray-500 uppercase">Jugados</p>
+                        <p id="iGamesPlayed" class="text-2xl font-extrabold text-gray-800">0</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-red-50 border border-red-100">
+                        <p class="text-xs font-semibold text-red-600 uppercase">Al Mantener</p>
+                        <p class="text-xl font-bold text-gray-800"><span id="iStayWins">0</span> <span class="text-sm font-normal text-gray-500">victorias</span></p>
+                        <p id="iStayRate" class="text-sm font-bold text-red-500 mt-1">0.0%</p>
+                    </div>
+                    <div class="p-3 rounded-lg bg-green-50 border border-green-100">
+                        <p class="text-xs font-semibold text-green-600 uppercase">Al Cambiar</p>
+                        <p class="text-xl font-bold text-gray-800"><span id="iSwitchWins">0</span> <span class="text-sm font-normal text-gray-500">victorias</span></p>
+                        <p id="iSwitchRate" class="text-sm font-bold text-green-500 mt-1">0.0%</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: SIMULACIÓN MASIVA -->
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8 border border-gray-200">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-800 text-sm font-bold px-2 py-1 rounded">Fase 2</span>
+                    Ley de los Grandes Números
+                </h2>
+            </div>
+
+            <!-- Controles Masivos -->
+            <div class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">N° Simulaciones (N)</label>
+                        <input type="number" id="numSimulations" value="10000" min="100" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Estrategia</label>
+                        <select id="simulationStrategy" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option value="both">Comparar Ambas</option>
+                            <option value="switch">Sólo Cambiar</option>
+                            <option value="stay">Sólo Mantener</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button id="runSimulation" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex justify-center items-center gap-2">
+                            <span>▶ Ejecutar Simulación</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Loading -->
+                <div id="loadingIndicator" class="mt-4 flex items-center justify-center gap-3 hidden">
+                    <div class="loading-spinner w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                    <span class="text-sm font-medium text-blue-800">Procesando datos...</span>
+                </div>
+            </div>
+
+            <!-- KPIs Masivos -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                    <p class="text-xs text-gray-500 uppercase font-bold">Total N</p>
+                    <p id="kpiTotal" class="text-2xl font-black text-gray-800">0</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg shadow-sm border border-green-100">
+                    <p class="text-xs text-green-700 uppercase font-bold">Éxito al Cambiar</p>
+                    <p id="kpiSwitchRate" class="text-2xl font-black text-green-700">0.00%</p>
+                    <p class="text-xs text-green-600">Objetivo: 66.7%</p>
+                </div>
+                <div class="bg-red-50 p-4 rounded-lg shadow-sm border border-red-100">
+                    <p class="text-xs text-red-700 uppercase font-bold">Éxito al Mantener</p>
+                    <p id="kpiStayRate" class="text-2xl font-black text-red-700">0.00%</p>
+                    <p class="text-xs text-red-600">Objetivo: 33.3%</p>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg shadow-sm border border-yellow-100">
+                    <p class="text-xs text-yellow-700 uppercase font-bold">Diferencia</p>
+                    <p id="kpiDifference" class="text-2xl font-black text-yellow-700">0.00%</p>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+                    <h4 class="font-bold text-gray-700 mb-4 text-center">Convergencia (Probabilidad Frecuencial)</h4>
+                    <div class="h-64">
+                        <canvas id="convergenceChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+                    <h4 class="font-bold text-gray-700 mb-4 text-center">Distribución de Victorias Totales</h4>
+                    <div class="h-64">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: INTUICIÓN CLAVE -->
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8 border border-gray-200">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span class="bg-blue-100 text-blue-800 text-sm font-bold px-2 py-1 rounded">Intuición Clave</span>
+            </h2>
+
+            <div class="space-y-6 text-gray-700">
+                <p class="text-sm leading-relaxed">
+                    El anfitrión no actúa al azar. Su acción siempre consiste en descubrir una puerta que tu no elegiste inicialmente y que contiene una cabra. Este punto es crucial.
+                </p>
+
+                <div class="bg-gray-50 rounded-lg p-5 border border-gray-200 shadow-inner">
+                    <p class="text-sm font-bold uppercase tracking-wider mb-3 text-gray-500">Esta acción concentra la probabilidad en dos grupos:</p>
+                    <ul class="space-y-3 text-sm">
+                        <li class="flex items-center gap-3 text-gray-700">
+                            <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-red-100 text-red-600 font-bold text-xs">1</span>
+                            <span>Tu elección original: 1/3</span>
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-800">
+                            <span class="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-full bg-green-100 text-green-700 font-bold text-xs">2</span>
+                            <span>La otra opción restante: 2/3</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <p class="text-sm italic border-l-4 border-blue-400 pl-4 py-1 text-gray-600">
+                    Al cambiar, aprovechas el hecho de que probablemente tu elección inicial estaba mal.
+                </p>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: EXPLICACIÓN TEÓRICA -->
+        <div class="bg-white p-8 rounded-xl shadow-lg mb-8 border border-gray-200 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1 h-full bg-blue-800"></div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Fundamentación Estadística</h2>
+
+            <div class="prose max-w-none text-gray-700">
+                <p class="mb-4">
+                    El Dilema de Monty Hall demuestra el principio de la <strong>Probabilidad Condicional</strong>. La clave no reside en las dos puertas cerradas que ves al final, sino en la información que el anfitrión introduce al sistema al abrir una puerta que él sabe que contiene una cabra.
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 my-6">
+                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                        <h3 class="font-bold text-blue-900 mb-2">Escenario 1: Mantener</h3>
+                        <p class="text-sm">
+                            Si mantienes tu puerta original, solo ganas si elegiste el auto al principio. Como hay 3 puertas y solo 1 auto, la probabilidad es:
+                        </p>
+                        <div class="mt-3 text-center font-mono text-lg font-bold text-red-600 bg-white py-2 rounded border">
+                            P(Ganar) = 1/3 = 0,333
+                            <div class="text-xs font-normal text-red-500 mt-1">aprox. 33,3% de posibilidades de ganar</div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-5 rounded-lg border border-gray-200">
+                        <h3 class="font-bold text-blue-900 mb-2">Escenario 2: Cambiar</h3>
+                        <p class="text-sm">
+                            Si cambias, ganarás siempre que tu elección inicial fuera incorrecta (una cabra). La probabilidad de haber elegido mal inicialmente es 2/3. Monty garantiza que si cambias, heredas esa probabilidad.
+                        </p>
+                        <div class="mt-3 text-center font-mono text-lg font-bold text-green-600 bg-white py-2 rounded border">
+                            P(Ganar) = 2/3 = 0,667
+                            <div class="text-xs font-normal text-green-500 mt-1">aprox. 66,7% de posibilidades de ganar</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <p class="text-sm italic text-gray-500 border-t pt-4">
+                    La simulación masiva demuestra cómo la <strong>Ley de los Grandes Números</strong> confirma que, a medida que aumentan las repeticiones (N), las tasas de éxito empírico convergen a las probabilidades teóricas 1/3=0,333 y 2/3=0,667.
+                </p>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 4: APLICACIÓN EN CIENCIAS ECONÓMICAS -->
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg mb-8 border border-gray-200 relative overflow-hidden">
+            <!-- Elemento decorativo opcional -->
+            <div class="absolute top-0 right-0 w-24 h-24 bg-green-50 rounded-full opacity-50 blur-xl -mr-10 -mt-10"></div>
+
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span class="bg-green-100 text-green-800 text-sm font-bold px-2 py-1 rounded">Economía</span>
+                Aplicación en las Ciencias Económicas
+            </h2>
+
+            <p class="text-gray-700 mb-6 font-medium">Este dilema enseña lecciones valiosas:</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Punto 1 -->
+                <div class="flex items-start gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors">
+                    <div class="flex-shrink-0 w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold text-lg">1</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 mb-1">Flexibilidad estratégica</h3>
+                        <p class="text-sm text-gray-600">Cambiar de decisión ante nueva información</p>
+                    </div>
+                </div>
+                
+                <!-- Punto 2 -->
+                <div class="flex items-start gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors">
+                    <div class="flex-shrink-0 w-10 h-10 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center font-bold text-lg">2</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 mb-1">Análisis bayesiano</h3>
+                        <p class="text-sm text-gray-600">Actualizar probabilidades con nueva evidencia</p>
+                    </div>
+                </div>
+
+                <!-- Punto 3 -->
+                <div class="flex items-start gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors">
+                    <div class="flex-shrink-0 w-10 h-10 bg-yellow-100 text-yellow-700 rounded-full flex items-center justify-center font-bold text-lg">3</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 mb-1">Sesgos cognitivos</h3>
+                        <p class="text-sm text-gray-600">Nuestra intuición puede engañarnos</p>
+                    </div>
+                </div>
+
+                <!-- Punto 4 -->
+                <div class="flex items-start gap-4 p-4 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors">
+                    <div class="flex-shrink-0 w-10 h-10 bg-red-100 text-red-700 rounded-full flex items-center justify-center font-bold text-lg">4</div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 mb-1">Toma de decisiones</h3>
+                        <p class="text-sm text-gray-600">La información asimétrica cambia las probabilidades</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="mt-12 text-center text-gray-400 text-sm pb-8">
+            &copy; 2024 Universidad Nacional de Villa María - Material Didáctico.
+        </footer>
+
+    </div>
+
+    <!-- LÓGICA JAVASCRIPT -->
+    <script>
+        // === VARIABLES GLOBALES ===
+        // Simulación Masiva
+        let totalSimulations = 0;
+        let switchWins = 0;
+        let stayWins = 0;
+        const convergenceData = { labels: [], switchRates: [], stayRates: [] };
+
+        // Interactivo
+        let interactiveState = 0; // 0:Inicio, 1:Eligió, 2:MontyAbrió, 3:Fin
+        let prizeDoorInteractive = null;
+        let initialPickInteractive = null;
+        let montyDoorInteractive = null;
+        
+        // Estadísticas Sesión
+        let interactiveTotalGames = 0;
+        let interactiveSwitchWins = 0;
+        let interactiveStayWins = 0;
+        let interactiveSwitchAttempts = 0; // Nuevo contador de intentos
+        let interactiveStayAttempts = 0; // Nuevo contador de intentos
+
+
+        // Elementos DOM
+        const domIds = ['kpiTotal', 'kpiSwitchRate', 'kpiStayRate', 'kpiDifference', 'runSimulation', 'loadingIndicator', 'interactiveMessage', 'decisionControls', 'restartInteractive', 'iGamesPlayed', 'iStayWins', 'iSwitchWins', 'iStayRate', 'iSwitchRate'];
+        const els = {};
+        domIds.forEach(id => els[id] = document.getElementById(id));
+        const doors = [1, 2, 3].map(n => document.getElementById(`door-${n}`));
+
+        // Charts Contexts
+        const convergenceCtx = document.getElementById('convergenceChart').getContext('2d');
+        const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+        let convergenceChart, comparisonChart;
+
+        // === LÓGICA INTERACTIVA ===
+
+        function updateMessage(msg, classes) {
+            els.interactiveMessage.className = `mb-8 p-4 rounded-lg text-center font-medium text-lg transition-all duration-300 shadow-sm ${classes}`;
+            els.interactiveMessage.textContent = msg;
+        }
+
+        function startInteractiveGame() {
+            interactiveState = 1;
+            initialPickInteractive = null;
+            montyDoorInteractive = null;
+            els.decisionControls.classList.add('hidden');
+            els.restartInteractive.classList.add('hidden');
+            
+            // Puerta ganadora aleatoria
+            prizeDoorInteractive = Math.floor(Math.random() * 3) + 1;
+
+            // Reset UI Puertas
+            doors.forEach((door, index) => {
+                const num = index + 1;
+                door.className = 'door-closed w-28 sm:w-32 h-40 sm:h-48 flex flex-col items-center justify-center rounded-lg shadow-lg transition-all cursor-pointer hover:translate-y-[-4px]';
+                door.onclick = () => handleDoorClick(num);
+                door.querySelector('.door-icon').textContent = '🚪';
+                door.querySelector('p').textContent = `Puerta ${num}`;
+                door.querySelector('p').className = 'text-sm font-bold text-white mt-2';
+                door.style.boxShadow = '';
+            });
+
+            updateMessage('¡Bienvenido! Selecciona una puerta para comenzar.', 'bg-blue-50 border-blue-200 text-blue-900');
+        }
+
+        function handleDoorClick(doorNum) {
+            if (interactiveState !== 1) return;
+
+            // 1. Jugador elige
+            initialPickInteractive = doorNum;
+            doors.forEach(d => d.onclick = null); // Bloquear clicks
+            
+            // Marcar selección visualmente
+            doors[doorNum - 1].classList.add('door-selected');
+            doors[doorNum - 1].classList.remove('door-closed'); // Mantener estilo base pero quitar hover
+            doors[doorNum - 1].style.backgroundColor = '#f59e0b'; // Amarillo fijo
+
+            // 2. Monty Abre Puerta (Lógica)
+            const available = [1, 2, 3].filter(n => n !== prizeDoorInteractive && n !== initialPickInteractive);
+            montyDoorInteractive = available[Math.floor(Math.random() * available.length)];
+
+            // UI Monty Abre
+            setTimeout(() => {
+                const mDoor = doors[montyDoorInteractive - 1];
+                mDoor.className = 'door-opened-goat w-28 sm:w-32 h-40 sm:h-48 flex flex-col items-center justify-center rounded-lg shadow-inner opacity-90';
+                mDoor.querySelector('.door-icon').textContent = '🐐';
+                mDoor.querySelector('p').textContent = 'CABRA';
+                
+                interactiveState = 2;
+                els.decisionControls.classList.remove('hidden');
+                updateMessage(`¡Monty abrió la Puerta ${montyDoorInteractive} y hay una cabra! ¿Deseas CAMBIAR de puerta o MANTENER la tuya?`, 'bg-yellow-50 border-yellow-200 text-yellow-800');
+            }, 600);
+        }
+
+        function handleFinalDecision(choice) {
+            if (interactiveState !== 2) return;
+            
+            els.decisionControls.classList.add('hidden');
+            
+            let finalPick = (choice === 'stay') 
+                ? initialPickInteractive 
+                : [1, 2, 3].find(n => n !== initialPickInteractive && n !== montyDoorInteractive);
+            
+            interactiveState = 3;
+            const win = (finalPick === prizeDoorInteractive);
+
+            // Registrar Stats
+            interactiveTotalGames++;
+            if (choice === 'stay') {
+                interactiveStayAttempts++;
+                if (win) interactiveStayWins++;
+            } else { // 'switch'
+                interactiveSwitchAttempts++;
+                if (win) interactiveSwitchWins++;
+            }
+            updateSessionStats();
+
+            // Revelar todo
+            doors.forEach((door, idx) => {
+                const n = idx + 1;
+                door.onclick = null;
+                
+                // Determinar estilo final
+                if (n === prizeDoorInteractive) {
+                    door.className = 'door-opened-car w-28 sm:w-32 h-40 sm:h-48 flex flex-col items-center justify-center rounded-lg shadow-xl ring-4 ring-green-300';
+                    door.querySelector('.door-icon').textContent = '🚗';
+                    door.querySelector('p').textContent = '¡AUTO!';
+                } else {
+                    door.className = 'door-opened-goat w-28 sm:w-32 h-40 sm:h-48 flex flex-col items-center justify-center rounded-lg shadow-inner opacity-70 grayscale';
+                    door.querySelector('.door-icon').textContent = '🐐';
+                    door.querySelector('p').textContent = 'CABRA';
+                }
+
+                // Resaltar la elección final del usuario
+                if (n === finalPick) {
+                    door.style.transform = 'scale(1.1)';
+                    door.style.zIndex = '10';
+                    door.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+                }
+            });
+
+            const msg = win 
+                ? `¡GANASTE! El auto estaba en la Puerta ${prizeDoorInteractive}. Estrategia: ${choice === 'stay' ? 'MANTENER' : 'CAMBIAR'}.` 
+                : `PERDISTE. Elegiste la puerta incorrecta. El auto estaba en la Puerta ${prizeDoorInteractive}.`;
+            
+            updateMessage(msg, win ? 'bg-green-100 border-green-300 text-green-900' : 'bg-red-100 border-red-300 text-red-900');
+            els.restartInteractive.classList.remove('hidden');
+        }
+
+        function updateSessionStats() {
+            els.iGamesPlayed.textContent = interactiveTotalGames;
+            els.iStayWins.textContent = interactiveStayWins;
+            els.iSwitchWins.textContent = interactiveSwitchWins;
+            
+            // Calcular la tasa de aciertos sobre los intentos de cada estrategia
+            const stayRate = interactiveStayAttempts > 0 
+                ? ((interactiveStayWins / interactiveStayAttempts) * 100).toFixed(1) 
+                : 0.0;
+            
+            const switchRate = interactiveSwitchAttempts > 0 
+                ? ((interactiveSwitchWins / interactiveSwitchAttempts) * 100).toFixed(1) 
+                : 0.0;
+            
+            els.iStayRate.textContent = `${stayRate}%`;
+            els.iSwitchRate.textContent = `${switchRate}%`;
+        }
+
+        // === LÓGICA MASIVA (Web Worker simulado con async/await) ===
+
+        async function runSimulation() {
+            const N = parseInt(document.getElementById('numSimulations').value);
+            const strat = document.getElementById('simulationStrategy').value;
+            
+            if (N <= 0) return;
+
+            els.runSimulation.disabled = true;
+            els.runSimulation.classList.add('opacity-50', 'cursor-not-allowed');
+            els.loadingIndicator.classList.remove('hidden');
+
+            // Reset
+            totalSimulations = 0; switchWins = 0; stayWins = 0;
+            convergenceData.labels = []; convergenceData.switchRates = []; convergenceData.stayRates = [];
+
+            const batchSize = Math.ceil(N / 50); // Para actualizar gráfica ~50 veces
+            
+            for (let i = 0; i < N; i += batchSize) {
+                const limit = Math.min(i + batchSize, N);
+                
+                // Cálculo intensivo en bloque
+                for (let j = i; j < limit; j++) {
+                    // Lógica Monty Hall pura
+                    const prize = Math.floor(Math.random() * 3);
+                    const choice = Math.floor(Math.random() * 3);
+                    
+                    // Si cambiamos: ganamos si choice != prize (2/3 de las veces)
+                    // Si mantenemos: ganamos si choice == prize (1/3 de las veces)
+                    
+                    if (strat === 'both' || strat === 'switch') {
+                        if (choice !== prize) switchWins++;
+                    }
+                    if (strat === 'both' || strat === 'stay') {
+                        if (choice === prize) stayWins++;
+                    }
+                }
+                
+                totalSimulations = limit;
+                
+                // Guardar punto para gráfica
+                convergenceData.labels.push(totalSimulations);
+                
+                let curSwitchRate = (strat === 'stay') ? (1 - (stayWins/totalSimulations)) : (switchWins/totalSimulations);
+                let curStayRate = (strat === 'switch') ? (1 - (switchWins/totalSimulations)) : (stayWins/totalSimulations);
+                
+                convergenceData.switchRates.push(curSwitchRate * 100);
+                convergenceData.stayRates.push(curStayRate * 100);
+
+                // Refrescar UI visualmente sin bloquear
+                if (i % (batchSize * 2) === 0) {
+                    updateKPIs();
+                    // Usar un pequeño delay para evitar bloqueo total del navegador
+                    await new Promise(r => setTimeout(r, 0)); 
+                }
+            }
+
+            updateKPIs();
+            updateCharts();
+            
+            els.runSimulation.disabled = false;
+            els.runSimulation.classList.remove('opacity-50', 'cursor-not-allowed');
+            els.loadingIndicator.classList.add('hidden');
+        }
+
+        function updateKPIs() {
+            els.kpiTotal.textContent = totalSimulations.toLocaleString();
+            
+            // Si simulamos solo una, inferimos la otra para comparación teórica
+            const strat = document.getElementById('simulationStrategy').value;
+            let sRate, stRate;
+
+            if (strat === 'switch') {
+                sRate = switchWins / totalSimulations;
+                stRate = 1 - sRate;
+            } else if (strat === 'stay') {
+                stRate = stayWins / totalSimulations;
+                sRate = 1 - stRate;
+            } else {
+                sRate = switchWins / totalSimulations;
+                stRate = stayWins / totalSimulations;
+            }
+
+            els.kpiSwitchRate.textContent = (sRate * 100).toFixed(2) + '%';
+            els.kpiStayRate.textContent = (stRate * 100).toFixed(2) + '%';
+            
+            const diff = (sRate - stRate) * 100;
+            els.kpiDifference.textContent = diff.toFixed(2) + '%';
+            els.kpiDifference.className = `text-2xl font-black ${diff > 0 ? 'text-green-600' : 'text-red-600'}`;
+        }
+
+        // === CHARTS ===
+
+        function initCharts() {
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            
+            convergenceChart = new Chart(convergenceCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Cambiar (Teórico 66.7%)', data: [], borderColor: '#16a34a', borderWidth: 2, pointRadius: 0, tension: 0.3 },
+                        { label: 'Mantener (Teórico 33.3%)', data: [], borderColor: '#dc2626', borderWidth: 2, pointRadius: 0, tension: 0.3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { min: 0, max: 100 } }
+                }
+            });
+
+            comparisonChart = new Chart(comparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mantener', 'Cambiar'],
+                    datasets: [{
+                        label: 'Victorias',
+                        data: [0, 0],
+                        backgroundColor: ['#fca5a5', '#86efac'],
+                        borderColor: ['#dc2626', '#16a34a'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateCharts() {
+            convergenceChart.data.labels = convergenceData.labels;
+            convergenceChart.data.datasets[0].data = convergenceData.switchRates;
+            convergenceChart.data.datasets[1].data = convergenceData.stayRates;
+            convergenceChart.update();
+
+            // Para el gráfico de barras, aseguramos datos consistentes según estrategia
+            const strat = document.getElementById('simulationStrategy').value;
+            let finalSwitchWins = switchWins;
+            let finalStayWins = stayWins;
+            
+            if (strat === 'switch') finalStayWins = totalSimulations - switchWins;
+            if (strat === 'stay') finalSwitchWins = totalSimulations - stayWins;
+
+            comparisonChart.data.datasets[0].data = [finalStayWins, finalSwitchWins];
+            comparisonChart.update();
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            startInteractiveGame();
+            
+            // Pequeña simulación inicial automática
+            setTimeout(() => {
+                document.getElementById('numSimulations').value = 200;
+                runSimulation().then(() => {
+                    document.getElementById('numSimulations').value = 10000;
+                });
+            }, 500);
+
+            els.runSimulation.addEventListener('click', runSimulation);
+        });
+    </script>
+</body>
+</html>
