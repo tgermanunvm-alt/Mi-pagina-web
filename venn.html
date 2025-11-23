@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Probabilidad y Conjuntos — Diagrama de Venn Interactivo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0d1217;
+    --panel: #121821;
+    --border: #1c2532;
+    --accent: #2f8af5;
+    --text: #e7eef7;
+    --muted: #9fb0c3;
+    --ok: #35c08f;
+    --warn: #f5a623;
+    --err: #ff5c77;
+    /* Colores de conjuntos y resaltado mejor balanceados */
+    --A: rgba(69, 129, 255, 0.28); /* Azul Suave */
+    --B: rgba(75, 210, 150, 0.28); /* Verde Suave */
+    --A-stroke: #4d78d8;
+    --B-stroke: #46b789;
+    --highlight: #f8c338; /* Amarillo Vibrante (para la región de interés) */
+    --conditional-base: #2a3850; /* Gris Oscuro para el espacio muestral condicional */
+    --field: #0a0d11;
+    --input-bg: #1c2532;
+    --unvm-blue: #003056;
+    --header-bg: #ffffff; /* Fondo blanco para el encabezado oficial */
+    --header-text: #333333;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  
+  /* Estilos del encabezado UNVM */
+  header {
+    background: var(--header-bg);
+    padding: 20px;
+    border-bottom: 5px solid var(--unvm-blue); /* Borde azul institucional */
+    text-align: center;
+    border-radius: 12px 12px 0 0;
+    margin: 16px 16px 0 16px;
+    color: var(--header-text);
+  }
+  .header-content {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+  }
+  
+  /* Contenedor y Estilo del Logo */
+  .logo-container {
+      margin: 0 auto 1rem auto; /* Centrado */
+      width: 120px; /* Ancho fijo para el contenedor */
+      display: flex;
+      justify-content: center;
+  }
+  
+  #logo-oficial {
+    width: 120px; /* Ancho fijo solicitado */
+    height: auto;
+    display: block;
+  }
+
+  .instituto {
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .espacio-curricular {
+    font-size: 14px;
+    color: var(--unvm-blue);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .main-title {
+    font-size: 28px;
+    color: #000;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+  }
+  .underline {
+    display: block;
+    width: 50px;
+    height: 3px;
+    background-color: #f5a623; /* Naranja/Amarillo institucional secundario */
+    margin: 8px auto 15px;
+  }
+  .docente {
+    font-size: 12px;
+    color: #666;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  /* Layout Principal */
+  .container{
+    display:grid; grid-template-columns: 320px 1fr; gap:16px; padding:16px;
+    padding-top: 0; 
+  }
+  @media (max-width: 900px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+  }
+
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; /* Espaciado entre secciones */
+  }
+  
+  /* Estilos específicos para secciones del panel */
+  .control-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+  }
+
+  h2{font-size:16px; margin:0 0 10px 0; font-weight:600}
+  h3{font-size:14px; margin:0 0 8px 0; font-weight:600; color:var(--muted); text-transform: uppercase; letter-spacing: 0.5px;}
+  label{display:block; font-size:13px; margin-bottom:4px; color:var(--muted)}
+  
+  .input-group { margin-bottom: 10px; }
+  input[type="number"]{
+    width: 100%; padding: 8px; border: 1px solid var(--border);
+    background: var(--input-bg); color: var(--text); border-radius: 6px;
+    font-family: inherit;
+  }
+  input[type="number"]:focus {
+    border-color: var(--accent); outline: none;
+  }
+
+  .btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:6px}
+  button{
+    background:#0e141b; border:1px solid var(--border); color:var(--text);
+    padding:8px 10px; border-radius:8px; font-size:13px; cursor:pointer;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  button:hover{border-color:#2a3850}
+  button.active{border-color:var(--accent); color:var(--accent); background:#0c1117}
+  
+  .note{font-size:12px; color:var(--muted); margin-top:8px}
+  
+  /* Diagrama */
+  .venn-wrap{display:flex; justify-content:center; align-items:center; padding:12px}
+  svg{max-width:560px; width:100%; height:auto}
+  
+  .legend{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+  .legend-item{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted)}
+  .swatch{width:14px; height:14px; border-radius:3px; border:1px solid var(--border)}
+  .swatch.a{background:var(--A)} .swatch.b{background:var(--B)} .swatch.h{background:var(--highlight)}
+  .swatch.c{background:var(--conditional-base)}
+  
+  /* Resultados */
+  .kv{
+    display: flex; flex-direction: column; 
+    padding:12px; border:1px dashed var(--border); border-radius:8px; 
+    background: var(--field);
+  }
+  .kv-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--muted); margin-bottom: 4px;
+  }
+  .kv b{color:var(--text); font-weight: 600; font-size: 20px;}
+  .formula-inline {
+    font-size: 12px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    color: var(--ok);
+  }
+  .result-pair {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .result-pair .count {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+  
+  .formula-container{
+    min-height: 40px; 
+    margin-top: 10px;
+  }
+  .formula-pill{
+    display:inline-flex; align-items:center; gap:8px;
+    background:#0d1319; border:1px solid var(--border); border-radius:999px;
+    padding:6px 10px; margin:4px 4px 0 0; font-size:12px; color:var(--muted)
+  }
+  /* Estilos para etiquetas de valores dentro del diagrama */
+  .value-label {
+    font-size: 14px;
+    font-weight: bold;
+    fill: #ffffff;
+    text-anchor: middle;
+    dominant-baseline: middle;
+    pointer-events: none;
+    filter: drop-shadow(0px 1px 2px rgba(0,0,0,0.5));
+  }
+  .value-label.exterior {
+    fill: #9fb0c3;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-content">
+    <!-- LOGO OFICIAL DE LA UNVM -->
+    <div class="logo-container">
+      <!-- Imagen cargada desde la URL oficial proporcionada -->
+      <!-- Se añade un fallback (onerror) por si la imagen externa no carga -->
+      <img 
+        src="https://comunicacioninstitucional.unvm.edu.ar/wp-content/uploads/2019/12/isologotipo-uso-basico.jpg" 
+        alt="Logo Oficial UNVM" 
+        id="logo-oficial"
+        onerror="this.onerror=null; this.src='https://placehold.co/120x120/003056/ffffff?text=UNVM';"
+      >
+    </div>
+
+    <div class="instituto">INSTITUTO ACADÉMICO PEDAGÓGICO DE CIENCIAS SOCIALES</div>
+    <div class="espacio-curricular">Espacio Curricular: Estadística y Probabilidad</div>
+    <div class="main-title">Simulación de Diagrama de Venn (2 conjuntos)</div>
+    <span class="underline"></span>
+    <div class="docente">Docente: Germán Torres</div>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Sidebar: Controles -->
+  <div class="card">
+    <h2>Panel de Control</h2>
+
+    <!-- 1. Escenarios Rápidos -->
+    <div class="control-section">
+      <h3>Escenarios rápidos</h3>
+      <div class="btns">
+        <button id="indep">Ej. Prob. Independiente</button>
+        <button id="disj">Mutuamente Excluyentes</button>
+        <button id="custom">Restablecer (10, 10, 5, 5)</button>
+      </div>
+    </div>
+
+    <!-- 2. Operación a Resaltar -->
+    <div class="control-section">
+      <h3>Operación a resaltar</h3>
+      <div class="btns">
+        <!-- Probabilidades Marginales -->
+        <button data-op="probA" class="active">P(A)</button>
+        <button data-op="probB">P(B)</button>
+        
+        <!-- Operaciones de Conjuntos -->
+        <button data-op="union">A ∪ B</button>
+        <button data-op="inter">A ∩ B</button>
+        <button data-op="diffAB">A − B</button>
+        <button data-op="diffBA">B − A</button>
+  
+        <!-- Complementos -->
+        <button data-op="compA">P(Aᶜ)</button>
+        <button data-op="compB">P(Bᶜ)</button>
+        <button data-op="compUnion">P((A ∪ B)ᶜ)</button>
+        
+        <!-- Condicionales -->
+        <button data-op="condAB">P(A|B)</button>
+        <button data-op="condBA">P(B|A)</button>
+      </div>
+    </div>
+
+    <!-- 3. Definición del Espacio Muestral -->
+    <div class="control-section" style="border-top: 1px solid var(--border); padding-top: 1rem;">
+      <h3>Definición del Espacio Muestral (Conteo)</h3>
+      <!-- Controles basados en las 4 regiones mutuamente excluyentes (Counts) -->
+  
+      <div class="input-group">
+        <label for="nOnlyA">N(A − B) — Elementos Solo en A:</label>
+        <input id="nOnlyA" type="number" min="0" value="10" step="1">
+      </div>
+      
+      <div class="input-group">
+        <label for="nOnlyB">N(B − A) — Elementos Solo en B:</label>
+        <input id="nOnlyB" type="number" min="0" value="10" step="1">
+      </div>
+      
+      <div class="input-group">
+        <label for="nInter">N(A ∩ B) — Elementos en la Intersección:</label>
+        <input id="nInter" type="number" min="0" value="5" step="1">
+      </div>
+  
+      <div class="input-group">
+        <label for="nNeither">N((A ∪ B)ᶜ) — Elementos Fuera de Ambos:</label>
+        <input id="nNeither" type="number" min="0" value="5" step="1">
+      </div>
+  
+  
+      <div class="kv" style="margin-top: 5px; background: var(--panel); border: 2px solid var(--accent); padding: 12px;">
+        <div class="kv-header">N(S) — Total de Elementos</div>
+        <b id="outNS">30</b>
+      </div>
+      
+      <div class="note">El tamaño de los círculos se ajusta según el conteo. Selecciona una operación para ver el cálculo.</div>
+    </div>
+
+  </div>
+
+  <!-- Main: Visualización y resultados -->
+  <div class="card">
+    <h2>Diagrama de Venn</h2>
+
+    <div class="venn-wrap">
+      <svg viewBox="0 0 560 300" aria-label="Diagrama de Venn">
+        <defs>
+          <!-- Sombras suaves y foco -->
+          <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.35"/>
+          </filter>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+
+          <!-- Formas base -->
+          <circle id="shapeA" cx="230" cy="150" r="92"/>
+          <circle id="shapeB" cx="330" cy="150" r="92"/>
+
+          <!-- Clips y Máscaras -->
+          <clipPath id="clipA"><use href="#shapeA"/></clipPath>
+          <clipPath id="clipB"><use href="#shapeB"/></clipPath>
+
+          <g id="shapeInter"><use href="#shapeB" clip-path="url(#clipA)"/></g>
+
+          <mask id="maskAminusB">
+            <rect x="0" y="0" width="560" height="300" fill="white"/>
+            <use href="#shapeInter" fill="black"/>
+          </mask>
+
+          <mask id="maskBminusA">
+            <rect x="0" y="0" width="560" height="300" fill="white"/>
+            <!-- Intersección simétrica: A recortado por B -->
+            <g>
+              <use href="#shapeA" clip-path="url(#clipB)" fill="black"/>
+            </g>
+          </mask>
+
+          <!-- Máscara para complementos de A y B -->
+          <mask id="maskCompA">
+            <rect x="0" y="0" width="560" height="300" fill="white"/>
+            <use href="#shapeA" fill="black"/>
+          </mask>
+          <mask id="maskCompB">
+            <rect x="0" y="0" width="560" height="300" fill="white"/>
+            <use href="#shapeB" fill="black"/>
+          </mask>
+           <!-- Máscara para complemento de la unión: ~(A U B) -->
+          <mask id="maskCompUnion">
+            <rect x="0" y="0" width="560" height="300" fill="white"/>
+            <use href="#shapeA" fill="black"/>
+            <use href="#shapeB" fill="black"/>
+          </mask>
+        </defs>
+
+        <!-- Campo/fondo (Espacio Muestral S) -->
+        <rect id="S_Rect" x="20" y="20" width="520" height="260" rx="14" fill="var(--field)" stroke="var(--border)" filter="url(#softShadow)"/>
+
+        <!-- Conjuntos base con mejor contraste -->
+        <!-- Se ocultan o muestran según si es condicional -->
+        <use id="baseA" href="#shapeA" fill="var(--A)" stroke="var(--A-stroke)" stroke-width="2" filter="url(#glow)"/>
+        <use id="baseB" href="#shapeB" fill="var(--B)" stroke="var(--B-stroke)" stroke-width="2" filter="url(#glow)"/>
+
+        <!-- Etiquetas de conjuntos A y B -->
+        <!-- Ajuste: Tamaño de fuente 28px y negrita -->
+        <!-- Las coordenadas iniciales se actualizarán por JS para estar cerca del borde -->
+        <text id="labelA" x="195" y="70" fill="#b8c6d6" font-size="28" font-weight="800">A</text>
+        <text id="labelB" x="360" y="70" fill="#b8c6d6" font-size="28" font-weight="800">B</text>
+
+        <!-- Capas de resaltado: SOLO superficie correspondiente -->
+        
+        <!-- P(A) -->
+        <g id="highlightA" opacity="0" style="display:none">
+          <use href="#shapeA" fill="var(--highlight)" />
+        </g>
+
+        <!-- P(B) -->
+        <g id="highlightB" opacity="0" style="display:none">
+          <use href="#shapeB" fill="var(--highlight)" />
+        </g>
+
+        <!-- Unión (A ∪ B) -->
+        <g id="highlightUnion" opacity="0" style="display:none">
+          <use href="#shapeA" fill="var(--highlight)" style="mix-blend-mode: normal"/>
+          <use href="#shapeB" fill="var(--highlight)" style="mix-blend-mode: screen"/>
+        </g>
+
+        <!-- Intersección (A ∩ B) -->
+        <g id="highlightInter" opacity="0" style="display:none">
+          <use href="#shapeB" clip-path="url(#clipA)" fill="var(--highlight)"/>
+        </g>
+
+        <!-- A − B -->
+        <g id="highlightDiffAB" opacity="0" style="display:none">
+          <use href="#shapeA" fill="var(--highlight)" mask="url(#maskAminusB)"/>
+        </g>
+
+        <!-- B − A -->
+        <g id="highlightDiffBA" opacity="0" style="display:none">
+          <use href="#shapeB" fill="var(--highlight)" mask="url(#maskBminusA)"/>
+        </g>
+
+        <!-- Aᶜ (Complemento de A) -->
+        <g id="highlightCompA" opacity="0" style="display:none">
+          <rect x="20" y="20" width="520" height="260" rx="14" fill="var(--highlight)" mask="url(#maskCompA)"/>
+        </g>
+
+        <!-- Bᶜ (Complemento de B) -->
+        <g id="highlightCompB" opacity="0" style="display:none">
+          <rect x="20" y="20" width="520" height="260" rx="14" fill="var(--highlight)" mask="url(#maskCompB)"/>
+        </g>
+
+        <!-- (A ∪ B)ᶜ (Complemento de la Unión) -->
+        <g id="highlightCompUnion" opacity="0" style="display:none">
+          <rect x="20" y="20" width="520" height="260" rx="14" fill="var(--highlight)" mask="url(#maskCompUnion)"/>
+        </g>
+
+
+        <!-- P(A|B) - Condicional -->
+        <g id="highlightCondAB" opacity="0" style="display:none">
+          <use href="#shapeB" fill="var(--conditional-base)" /> 
+          <use href="#shapeB" clip-path="url(#clipA)" fill="var(--highlight)"/>
+          <use href="#shapeB" fill="none" stroke="var(--highlight)" stroke-width="3"/>
+        </g>
+
+        <!-- P(B|A) - Condicional -->
+        <g id="highlightCondBA" opacity="0" style="display:none">
+          <use href="#shapeA" fill="var(--conditional-base)" />
+          <use href="#shapeA" clip-path="url(#clipB)" fill="var(--highlight)"/>
+          <use href="#shapeA" fill="none" stroke="var(--highlight)" stroke-width="3"/>
+        </g>
+        
+        <!-- Etiquetas de Valor de Conteo (N) en el diagrama -->
+        <text id="label_only_a" class="value-label" x="0" y="0"></text>
+        <text id="label_only_b" class="value-label" x="0" y="0"></text>
+        <text id="label_inter" class="value-label" x="0" y="0"></text>
+        <text id="label_neither" class="value-label exterior" x="500" y="270"></text>
+      </svg>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="swatch a"></span> Conjunto A</div>
+      <div class="legend-item"><span class="swatch b"></span> Conjunto B</div>
+      <div class="legend-item"><span class="swatch h"></span> Probabilidad</div>
+      <div class="legend-item"><span class="swatch c"></span> Espacio Condicional</div>
+    </div>
+
+    <!-- RESULTADO ÚNICO -->
+    <h3>Resultado de la Operación Seleccionada</h3>
+    <div id="singleResultContainer" class="kv" style="margin-top: 15px;">
+      <div class="kv-header">
+        <span id="resultTitle">P(A)</span> 
+        <span class="formula-inline" id="resultFormula">= N(A) / N(S)</span>
+      </div>
+      <div class="result-pair">
+        <b id="outPResult">0.333</b>
+        <span class="count" id="outNResult">N(A) = 15 (Total de 30)</span>
+      </div>
+    </div>
+    <!-- FIN SECCIÓN DE RESULTADO ÚNICO -->
+
+
+    <h3>Fórmula ampliada de la operación seleccionada</h3>
+    <div id="formulaContainer" class="formula-container">
+      <!-- Fórmulas que se mostrarán dinámicamente -->
+
+      <div data-op-id="probA" style="display:block">
+        <div class="formula-pill"><b>Definición</b> P(A) = N(A) / N(S) = (N(A &minus; B) + N(A ∩ B)) / N(S)</div>
+        <div class="formula-pill"><b>Regla de la Adición</b> P(A) = P(A &minus; B) + P(A ∩ B)</div>
+      </div>
+      
+      <div data-op-id="probB" style="display:none">
+        <div class="formula-pill"><b>Definición</b> P(B) = N(B) / N(S) = (N(B &minus; A) + N(A ∩ B)) / N(S)</div>
+        <div class="formula-pill"><b>Regla de la Adición</b> P(B) = P(B &minus; A) + P(A ∩ B)</div>
+      </div>
+
+      <div data-op-id="union" style="display:none">
+        <div class="formula-pill"><b>Conteo por Regiones</b> N(A ∪ B) = N(A &minus; B) + N(B &minus; A) + N(A ∩ B)</div>
+        <div class="formula-pill"><b>Regla General de la Suma</b> P(A ∪ B) = P(A) + P(B) &minus; P(A ∩ B)</div>
+      </div>
+
+      <div data-op-id="inter" style="display:none">
+        <div class="formula-pill"><b>Conteo</b> P(A ∩ B) = N(A ∩ B) / N(S)</div>
+        <div class="formula-pill"><b>Multiplicación</b> P(A ∩ B) = P(A|B) &middot; P(B) (o P(B|A) &middot; P(A))</div>
+      </div>
+      
+      <div data-op-id="diffAB" style="display:none">
+        <div class="formula-pill"><b>Diferencia de Conjuntos</b> P(A &minus; B) = P(A) &minus; P(A ∩ B)</div>
+        <div class="formula-pill"><b>Conteo</b> P(A &minus; B) = N(A &minus; B) / N(S)</div>
+      </div>
+      
+      <div data-op-id="diffBA" style="display:none">
+        <div class="formula-pill"><b>Diferencia de Conjuntos</b> P(B &minus; A) = P(B) &minus; P(A ∩ B)</div>
+        <div class="formula-pill"><b>Conteo</b> P(B &minus; A) = N(B &minus; A) / N(S)</div>
+      </div>
+
+      <div data-op-id="compA" style="display:none">
+        <div class="formula-pill"><b>Complemento</b> P(Aᶜ) = 1 &minus; P(A)</div>
+        <div class="formula-pill"><b>Regiones</b> P(Aᶜ) = P(B &minus; A) + P((A ∪ B)ᶜ)</div>
+      </div>
+      
+      <div data-op-id="compB" style="display:none">
+        <div class="formula-pill"><b>Complemento</b> P(Bᶜ) = 1 &minus; P(B)</div>
+        <div class="formula-pill"><b>Regiones</b> P(Bᶜ) = P(A &minus; B) + P((A ∪ B)ᶜ)</div>
+      </div>
+      
+      <div data-op-id="compUnion" style="display:none">
+        <div class="formula-pill"><b>Leyes de De Morgan</b> P((A ∪ B)ᶜ) = P(Aᶜ ∩ Bᶜ)</div>
+        <div class="formula-pill"><b>Complemento</b> P((A ∪ B)ᶜ) = 1 &minus; P(A ∪ B)</div>
+      </div>
+      
+      <div data-op-id="condAB" style="display:none">
+        <div class="formula-pill"><b>Prob. Condicional</b> P(A|B) = P(A ∩ B) / P(B) (Probabilidad de A dado B)</div>
+        <div class="formula-pill"><b>En Conteo</b> P(A|B) = N(A ∩ B) / N(B)</div>
+      </div>
+      
+      <div data-op-id="condBA" style="display:none">
+        <div class="formula-pill"><b>Prob. Condicional</b> P(B|A) = P(A ∩ B) / P(A) (Probabilidad de B dado A)</div>
+        <div class="formula-pill"><b>En Conteo</b> P(B|A) = N(A ∩ B) / N(A)</div>
+      </div>
+
+    </div>
+
+    <div class="note">Interpretación: Si A es “inversor en acciones” y B es “inversor en bonos”, el conteo define cuántos inversores hay en cada categoría.</div>
+  </div>
+</div>
+
+<script>
+  // Elementos de control (los 4 conteos N)
+  const nOnlyAInput = document.getElementById('nOnlyA');
+  const nOnlyBInput = document.getElementById('nOnlyB');
+  const nInterInput = document.getElementById('nInter');
+  const nNeitherInput = document.getElementById('nNeither'); 
+
+  // Elementos de salida del resultado único
+  const outNS = document.getElementById('outNS');
+  const outPResult = document.getElementById('outPResult');
+  const outNResult = document.getElementById('outNResult');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultFormula = document.getElementById('resultFormula');
+
+
+  const ops = document.querySelectorAll('button[data-op]');
+  const formulas = document.querySelectorAll('#formulaContainer > div');
+  
+  const highlightLayers = {
+    probA: document.getElementById('highlightA'), 
+    probB: document.getElementById('highlightB'), 
+    union: document.getElementById('highlightUnion'),
+    inter: document.getElementById('highlightInter'),
+    diffAB: document.getElementById('highlightDiffAB'),
+    diffBA: document.getElementById('highlightDiffBA'),
+    compA: document.getElementById('highlightCompA'),
+    compB: document.getElementById('highlightCompB'),
+    compUnion: document.getElementById('highlightCompUnion'), 
+    condAB: document.getElementById('highlightCondAB'),
+    condBA: document.getElementById('highlightCondBA'),
+  };
+  
+  const baseA = document.getElementById('baseA');
+  const baseB = document.getElementById('baseB');
+
+  const btnIndep = document.getElementById('indep');
+  const btnDisj = document.getElementById('disj');
+  const btnCustom = document.getElementById('custom');
+  
+  // Etiquetas SVG para mostrar valores y nombres de conjuntos
+  const label_only_a = document.getElementById('label_only_a');
+  const label_only_b = document.getElementById('label_only_b');
+  const label_inter = document.getElementById('label_inter');
+  const label_neither = document.getElementById('label_neither');
+  const labelA = document.getElementById('labelA');
+  const labelB = document.getElementById('labelB');
+
+
+  // Estado inicial basado en los 4 conteos (N)
+  let state = { 
+    n_only_a: 10, 
+    n_only_b: 10, 
+    n_inter: 5, 
+    n_neither: 5,
+    op: 'probA' 
+  }; 
+
+  // Variables derivadas (se calculan en render)
+  let derived = {};
+
+  function updateDerivedValues() {
+      // 1. Calcular Conteo Total (N(S))
+      derived.ns = state.n_only_a + state.n_only_b + state.n_inter + state.n_neither;
+
+      if (derived.ns === 0) {
+        // Evitar división por cero
+        derived.p_only_a = derived.p_only_b = derived.p_inter = derived.p_neither = 0;
+      } else {
+        // 2. Calcular Probabilidades a partir de Conteo (P = N / N(S))
+        derived.p_only_a = state.n_only_a / derived.ns;
+        derived.p_only_b = state.n_only_b / derived.ns;
+        derived.p_inter = state.n_inter / derived.ns;
+        derived.p_neither = state.n_neither / derived.ns;
+      }
+
+      // 3. Calcular Marginales y Conjuntas (en Conteo y Probabilidad)
+      derived.na = state.n_only_a + state.n_inter;
+      derived.nb = state.n_only_b + state.n_inter;
+      derived.nab = state.n_inter;
+      derived.nub = derived.na + derived.nb - derived.nab;
+      derived.nac = state.n_only_b + state.n_neither;
+      derived.nbc = state.n_only_a + state.n_neither;
+      
+      derived.pa_val = derived.p_only_a + derived.p_inter;
+      derived.pb_val = derived.p_only_b + derived.p_inter;
+      derived.pab_val = derived.p_inter; 
+      derived.pUnion = derived.p_only_a + derived.p_only_b + derived.p_inter;
+      
+      // 4. Probabilidades derivadas de complementos y diferencias
+      derived.pAminusB = derived.p_only_a; 
+      derived.pBminusA = derived.p_only_b; 
+      derived.pAc      = 1 - derived.pa_val; // derived.p_neither + derived.p_only_b; 
+      derived.pBc      = 1 - derived.pb_val; // derived.p_neither + derived.p_only_a; 
+      derived.pCompUnion = derived.p_neither; 
+
+      // 5. Condicionales (manejar división por cero)
+      derived.pCondAB  = derived.pb_val > 1e-9 ? (derived.pab_val / derived.pb_val) : 0; // Intersection / P(B)
+      derived.pCondBA  = derived.pa_val > 1e-9 ? (derived.pab_val / derived.pa_val) : 0; // Intersection / P(A)
+  }
+
+
+  function setInputsFromState(){
+    nOnlyAInput.value = state.n_only_a;
+    nOnlyBInput.value = state.n_only_b;
+    nInterInput.value = state.n_inter;
+    nNeitherInput.value = state.n_neither;
+  }
+  
+  const formatP = (p) => p.toFixed(3);
+
+  function render() {
+    // 1. Calcular todos los valores
+    updateDerivedValues();
+
+    // 2. Salida de Conteo Total (N(S)) en el sidebar
+    outNS.textContent = derived.ns;
+    
+    // 3. Mapeo para el resultado único
+    const resultMapping = {
+        probA: { title: 'P(A)', formula: '= N(A) / N(S)', p: derived.pa_val, n_count: derived.na, n_text: `N(A) = ${derived.na}` },
+        probB: { title: 'P(B)', formula: '= N(B) / N(S)', p: derived.pb_val, n_count: derived.nb, n_text: `N(B) = ${derived.nb}` },
+        inter: { title: 'P(A ∩ B)', formula: '= N(A ∩ B) / N(S)', p: derived.pab_val, n_count: derived.nab, n_text: `N(A ∩ B) = ${derived.nab}` },
+        union: { title: 'P(A ∪ B)', formula: '= P(A) + P(B) − P(A ∩ B)', p: derived.pUnion, n_count: derived.nub, n_text: `N(A ∪ B) = ${derived.nub}` },
+        diffAB: { title: 'P(A − B)', formula: '= P(A) − P(A ∩ B)', p: derived.pAminusB, n_count: state.n_only_a, n_text: `N(A − B) = ${state.n_only_a}` },
+        diffBA: { title: 'P(B − A)', formula: '= P(B) − P(A ∩ B)', p: derived.pBminusA, n_count: state.n_only_b, n_text: `N(B − A) = ${state.n_only_b}` },
+        compA: { title: 'P(Aᶜ)', formula: '= 1 − P(A)', p: derived.pAc, n_count: derived.nac, n_text: `N(Aᶜ) = ${derived.nac}` },
+        compB: { title: 'P(Bᶜ)', formula: '= 1 − P(B)', p: derived.pBc, n_count: derived.nbc, n_text: `N(Bᶜ) = ${derived.nbc}` },
+        compUnion: { title: 'P((A ∪ B)ᶜ)', formula: '= 1 − P(A ∪ B)', p: derived.pCompUnion, n_count: state.n_neither, n_text: `N((A ∪ B)ᶜ) = ${state.n_neither}` },
+        // Condicionales - la probabilidad es relativa al espacio muestral condicional
+        condAB: { 
+            title: 'P(A|B)', 
+            formula: '= P(A ∩ B) / P(B)', 
+            p: derived.pCondAB, 
+            n_count: derived.nab,
+            n_text: `N(A ∩ B) / N(B) = ${derived.nab} / ${derived.nb}` 
+        },
+        condBA: { 
+            title: 'P(B|A)', 
+            formula: '= P(A ∩ B) / P(A)', 
+            p: derived.pCondBA, 
+            n_count: derived.nab,
+            n_text: `N(A ∩ B) / N(A) = ${derived.nab} / ${derived.na}` 
+        },
+    };
+
+    const currentResult = resultMapping[state.op];
+
+    // 4. Actualizar el display de resultado único
+    resultTitle.textContent = currentResult.title;
+    resultFormula.innerHTML = currentResult.formula;
+    outPResult.textContent = formatP(currentResult.p);
+    
+    // Para condicionales, mostramos la fracción de conteo
+    if (state.op === 'condAB' || state.op === 'condBA') {
+        outNResult.textContent = currentResult.n_text;
+    } else {
+        // Para no condicionales, mostramos N(X) y N(S)
+        outNResult.innerHTML = `${currentResult.n_text} (Total de ${derived.ns})`;
+    }
+
+
+    // 5. Visual: operación activa (resaltado en el Venn)
+    Object.keys(highlightLayers).forEach(k => {
+      const el = highlightLayers[k];
+      if (k === state.op) {
+        el.style.display = 'block';
+        el.setAttribute('opacity', '1');
+      } else {
+        el.setAttribute('opacity', '0');
+        el.style.display = 'none';
+      }
+    });
+
+    // 6. Controlar visibilidad de los conjuntos base para condicionales
+    if (state.op === 'condAB') {
+        baseB.style.display = 'none';
+        baseA.style.display = 'block'; 
+    } else if (state.op === 'condBA') {
+        baseA.style.display = 'none'; 
+        baseB.style.display = 'block'; 
+    } else {
+        baseA.style.display = 'block';
+        baseB.style.display = 'block';
+    }
+
+    // 7. Visual: Fórmulas clave (mostrar solo la seleccionada)
+    formulas.forEach(f => {
+      if (f.dataset.opId === state.op) {
+        f.style.display = 'block';
+      } else {
+        f.style.display = 'none';
+      }
+    });
+
+    // 8. Tamaño visual de los círculos (estético, no exacto en área)
+    if (derived.ns === 0 || isNaN(derived.ns)) {
+        const rA = 50; const rB = 50;
+        const cxA = 280 - 70; const cxB = 280 + 70;
+        document.getElementById('shapeA').setAttribute('r', rA);
+        document.getElementById('shapeB').setAttribute('r', rB);
+        document.getElementById('shapeA').setAttribute('cx', cxA);
+        document.getElementById('shapeB').setAttribute('cx', cxB);
+        return; // Salir de la renderización visual si no hay conteo
+    }
+
+    const pa_norm = Math.min(1, derived.pa_val);
+    const pb_norm = Math.min(1, derived.pb_val);
+
+    const rA = 60 + 60 * Math.sqrt(pa_norm); 
+    const rB = 60 + 60 * Math.sqrt(pb_norm);
+    const shapeA = document.getElementById('shapeA');
+    const shapeB = document.getElementById('shapeB');
+
+    const maxOverlapDistance = 80; 
+    let d; 
+    const center = 280;
+    
+    if (derived.pab_val < 1e-9) { 
+        // Mutuamente excluyentes
+        d = rA + rB + 20; 
+        if (d > 500) d = 500; 
+        if (d < 100) d = 100; 
+    } else {
+        // Conjunta
+        const pAB_normalized = derived.pab_val / Math.min(derived.pa_val || 1, derived.pb_val || 1); 
+        const baseSeparation = 150; 
+        const minDistance = 10;
+        
+        d = baseSeparation - (pAB_normalized * maxOverlapDistance);
+        if (d < minDistance) d = minDistance; 
+    }
+
+    const cxA = center - d/2;
+    const cxB = center + d/2;
+    const cy = 175; // Centro Y fijo (definido en SVG, pero útil para JS)
+
+    shapeA.setAttribute('r', rA.toFixed(2));
+    shapeB.setAttribute('r', rB.toFixed(2));
+    shapeA.setAttribute('cx', cxA.toFixed(2));
+    shapeB.setAttribute('cx', cxB.toFixed(2));
+    
+    // Actualizar referencias de las formas base en DEFS
+    const shapeInter = document.getElementById('shapeInter');
+    if (shapeInter) shapeInter.innerHTML = `<use href="#shapeB" clip-path="url(#clipA)"/>`; 
+
+    // Actualizar etiquetas de posición de A y B (Nombres de Conjunto)
+    // Ajuste: Las etiquetas se alejan más del centro del círculo (hacia afuera) para evitar solapamiento
+    // Incrementamos el offset (radio + 60) para alejarlas más
+    
+    const labelDistA = rA + 60; 
+    labelA.setAttribute('x', (cxA - labelDistA * 0.7).toFixed(2)); 
+    labelA.setAttribute('y', (150 - labelDistA * 0.7).toFixed(2)); // Usamos 150 como centro Y de referencia para simetría
+
+    const labelDistB = rB + 60;
+    labelB.setAttribute('x', (cxB + labelDistB * 0.7).toFixed(2));
+    labelB.setAttribute('y', (150 - labelDistB * 0.7).toFixed(2));
+
+    // Si los radios son muy pequeños, forzar una separación mínima
+    if (rA < 30) { labelA.setAttribute('x', cxA - 60); labelA.setAttribute('y', 150 - 60); }
+    if (rB < 30) { labelB.setAttribute('x', cxB + 60); labelB.setAttribute('y', 150 - 60); }
+
+    
+    // -----------------------------------------------------------------
+    // Actualizar los valores de texto en el diagrama SVG
+    // -----------------------------------------------------------------
+    
+    // Valor Solo A: posicionado a la izquierda del centro de A
+    label_only_a.textContent = state.n_only_a;
+    const offsetA = rA * 0.4; 
+    label_only_a.setAttribute('x', (cxA - offsetA).toFixed(2));
+    label_only_a.setAttribute('y', '175'); // Eje Y fijo en el centro
+    
+    // Valor Solo B: posicionado a la derecha del centro de B
+    label_only_b.textContent = state.n_only_b;
+    const offsetB = rB * 0.4;
+    label_only_b.setAttribute('x', (cxB + offsetB).toFixed(2));
+    label_only_b.setAttribute('y', '175');
+
+    // Valor Intersección: en el punto medio entre cxA y cxB
+    if (derived.pab_val < 1e-9) {
+        // Si no hay intersección, ocultar etiqueta o poner 0 en medio del espacio
+        label_inter.textContent = "0";
+        label_inter.setAttribute('x', center.toFixed(2));
+        label_inter.setAttribute('y', '175');
+    } else {
+        label_inter.textContent = state.n_inter;
+        label_inter.setAttribute('x', center.toFixed(2)); 
+        label_inter.setAttribute('y', '175');
+    }
+
+    // Valor Exterior: en una esquina fija
+    label_neither.textContent = `${state.n_neither}`;
+    // (Ya tiene posición fija en el SVG x=500 y=270 pero podemos ajustarla si cambia el canvas)
+  }
+
+  // Eventos de entrada
+  function handleCountInput(e, key) {
+    let value = parseInt(e.target.value, 10);
+    if (isNaN(value) || value < 0) {
+      value = 0;
+      e.target.value = 0;
+    }
+    state[key] = value;
+    render();
+  }
+
+  nOnlyAInput.addEventListener('input', e => handleCountInput(e, 'n_only_a'));
+  nOnlyBInput.addEventListener('input', e => handleCountInput(e, 'n_only_b'));
+  nInterInput.addEventListener('input', e => handleCountInput(e, 'n_inter'));
+  nNeitherInput.addEventListener('input', e => handleCountInput(e, 'n_neither'));
+
+  // Botones de operación
+  ops.forEach(btn => {
+    btn.addEventListener('click', () => {
+      ops.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.op = btn.dataset.op;
+      render();
+    });
+  });
+
+  // Escenarios
+  btnIndep.addEventListener('click', () => {
+    // Ejemplo donde P(A ∩ B) = P(A)P(B). Usaremos N(S)=100. N(A)=50, N(B)=50. N(A∩B)=25.
+    state.n_only_a = 25; state.n_only_b = 25; state.n_inter = 25; state.n_neither = 25;
+    setInputsFromState(); render();
+  });
+  btnDisj.addEventListener('click', () => {
+    // Mutuamente excluyentes: N(A ∩ B) = 0. N(S)=30
+    state.n_only_a = 15; state.n_only_b = 10; state.n_inter = 0; state.n_neither = 5;
+    setInputsFromState(); render();
+  });
+  btnCustom.addEventListener('click', () => {
+    // Restablecer al estado inicial
+    state.n_only_a = 10; 
+    state.n_only_b = 10; 
+    state.n_inter = 5; 
+    state.n_neither = 5;
+    state.op = 'probA'; 
+    setInputsFromState(); 
+    ops.forEach(b => b.classList.remove('active'));
+    document.querySelector('button[data-op="probA"]').classList.add('active');
+    render();
+  });
+
+  // Inicializa
+  setInputsFromState();
+  document.querySelector('button[data-op="probA"]').classList.add('active');
+  render();
+</script>
+
+</body>
+</html>

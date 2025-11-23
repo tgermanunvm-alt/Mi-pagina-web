@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Probabilidad - UNVM</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #1D4ED8; /* Blue-700 for primary actions */
+            --color-secondary: #FBBF24; /* Amber-400 for accents */
+            --color-bg: #F9FAFB; /* Gray-50 for background */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+        }
+        /* Estilos específicos para la barra de visualización */
+        .bar {
+            transition: height 0.3s ease-in-out, background-color 0.3s ease-in-out;
+            border-radius: 0.25rem 0.25rem 0 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+        .bar-label {
+            font-size: 0.75rem; /* text-xs */
+            color: #1F2937; /* gray-800 */
+            padding-bottom: 4px;
+            font-weight: 600;
+        }
+        /* Estilo para el logo UNVM: Ahora respeta el aspecto original */
+        .unvm-logo {
+            max-height: 80px; /* Limita la altura máxima */
+            width: auto;     /* Permite el ancho natural */
+            object-fit: contain; /* Asegura que la imagen se vea completa sin recortar */
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <!-- Bloque Encabezado -->
+    <header class="mb-8 p-6 bg-white rounded-xl shadow-lg border border-gray-100 text-center">
+        <div class="flex flex-col items-center mx-auto">
+            
+            <!-- Logo UNVM: Ahora se muestra en su aspecto original (horizontal) -->
+            <img 
+                src="https://comunicacioninstitucional.unvm.edu.ar/wp-content/uploads/2019/12/isologotipo-uso-basico.jpg" 
+                alt="Logo UNVM" 
+                class="unvm-logo mb-3 block mx-auto shadow-md"
+                onerror="this.onerror=null; this.src='https://placehold.co/200x80/1D4ED8/FBBF24?text=LOGO+UNVM';" 
+            />
+            
+            <!-- INSTITUTO ACADÉMICO PEDAGÓGICO DE CIENCIAS SOCIALES -->
+            <p class="text-xs tracking-widest uppercase text-gray-600 mb-1">
+                INSTITUTO ACADÉMICO PEDAGÓGICO DE CIENCIAS SOCIALES
+            </p>
+
+            <!-- Espacio Curricular: Estadística y Probabilidad -->
+            <h2 class="text-base font-semibold text-blue-700 mb-4">
+                Espacio Curricular: Estadística y Probabilidad
+            </h2>
+
+            <!-- TÍTULO PRINCIPAL -->
+            <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight">
+                Probabilidad interactiva con lanzamiento de dados
+            </h1>
+
+            <!-- Divisor de acento -->
+            <div class="h-1 w-12 bg-yellow-500 my-4 rounded-full"></div>
+
+            <!-- Nombre del Docente -->
+            <p class="text-sm text-gray-700 mt-2">
+                Docente: Germán Torres
+            </p>
+        </div>
+    </header>
+
+
+    <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Columna 1 & 2: Simulación de Eventos Discretos (Ley de los Grandes Números) -->
+        <section class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h2 id="simulationTitle" class="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">
+                Simulación: La Ley de los Grandes Números (1 Dado)
+            </h2>
+
+            <!-- Controles de la Simulación -->
+            <div class="flex flex-col sm:flex-row gap-4 mb-6 items-end">
+                
+                <!-- Nuevo selector para número de dados (k) -->
+                <div class="w-full sm:w-auto">
+                    <label for="numDice" class="block text-sm font-medium text-gray-700 mb-1">
+                        Número de Dados (k):
+                    </label>
+                    <select id="numDice" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <option value="1">1 Dado (Suma 1 a 6)</option>
+                        <option value="2">2 Dados (Suma 2 a 12)</option>
+                        <option value="3">3 Dados (Suma 3 a 18)</option>
+                    </select>
+                </div>
+
+                <!-- Input existente para N -->
+                <div class="flex-grow w-full sm:w-auto">
+                    <label for="numRolls" class="block text-sm font-medium text-gray-700 mb-1">
+                        Número de Lanzamientos (N):
+                    </label>
+                    <input type="number" id="numRolls" value="1000" min="1" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Ej: 1000, 10000">
+                </div>
+                
+                <button id="runSimulation" class="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-150">
+                    Ejecutar Simulación
+                </button>
+            </div>
+
+            <!-- Resultados y Visualización -->
+            <div id="resultsArea" class="mt-4">
+                <p class="text-gray-600 mb-3">
+                    <span class="font-bold">Total de Lanzamientos:</span> <span id="totalRollsDisplay">0</span>
+                </p>
+
+                <!-- Gráfico de Frecuencias Relativas -->
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <h3 class="text-lg font-medium mb-3 text-gray-700">Frecuencia Relativa (Probabilidad Empírica)</h3>
+                    <div id="chartContainer" class="flex justify-around items-end h-64 border-b border-gray-300 pt-2">
+                        <!-- Las barras se inyectarán aquí -->
+                    </div>
+                    <!-- Etiquetas del Eje X (Suma / Cara) -->
+                    <div id="chartLabels" class="flex justify-around mt-2 text-sm font-medium text-gray-600">
+                        <!-- Etiquetas inyectadas por JS -->
+                    </div>
+                </div>
+
+                <!-- Tabla de Resultados -->
+                <div class="mt-6 overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suma (X)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frecuencia (n)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Frec. Relativa (h)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prob. Teórica (P)</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">|h - P| (Error)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Filas inyectadas por JS -->
+                        </tbody>
+                    </table>
+                    <p id="theoreticalNote" class="text-xs text-gray-500 mt-2 hidden">* N/A: El cálculo analítico de la probabilidad teórica es demasiado complejo para incluirlo dinámicamente en este simulador de una sola página.</p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Columna 3: Visualización de la Convergencia (Ley de los Grandes Números) -->
+        <section class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700 border-b pb-2">
+                Convergencia (Ley de los Grandes Números)
+            </h2>
+            <p class="text-sm text-gray-500 mb-4">
+                Observa cómo la frecuencia relativa se acerca a la probabilidad teórica a medida que aumenta el número de lanzamientos.
+            </p>
+
+            <!-- Controles de Convergencia -->
+            <div class="space-y-3 mb-6">
+                <!-- Selector de Número de Dados (K) -->
+                <div>
+                    <label for="convergenceNumDice" class="block text-sm font-medium text-gray-700">Dados (k):</label>
+                    <select id="convergenceNumDice" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <option value="1">1 Dado</option>
+                        <option value="2" selected>2 Dados</option>
+                        <option value="3">3 Dados</option>
+                    </select>
+                </div>
+                <!-- Selector de Suma o Cara (X) -->
+                <div>
+                    <label for="convergenceTargetSum" class="block text-sm font-medium text-gray-700">Suma objetivo (X):</label>
+                    <select id="convergenceTargetSum" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        <!-- Opciones inyectadas por JS al cambiar el número de dados -->
+                    </select>
+                </div>
+                <!-- Input de Número Máximo de Lanzamientos (N) -->
+                <div>
+                    <label for="convergenceMaxRolls" class="block text-sm font-medium text-gray-700">Máx. Lanzamientos (N):</label>
+                    <input type="number" id="convergenceMaxRolls" value="5000" min="10" step="10" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+
+            <button id="runConvergence" class="w-full px-6 py-2 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 transition duration-150">
+                Iniciar Convergencia
+            </button>
+            
+            <div id="convergenceDisplay" class="mt-4">
+                 <p class="text-sm text-gray-600 mb-2">P(Teórica): <span id="targetTheoreticalP" class="font-bold text-lg text-purple-600">N/A</span></p>
+                 <div id="convergenceChartContainer" class="bg-gray-50 p-2 rounded-lg border border-gray-200">
+                    <!-- Añado tabindex para mejorar la accesibilidad y el manejo de eventos -->
+                    <canvas id="convergenceChart" height="200" width="300" class="w-full" tabindex="0"></canvas>
+                 </div>
+                 <p id="convergenceStatus" class="mt-2 text-xs text-gray-500">Listo para simular.</p>
+            </div>
+            
+        </section>
+
+    </main>
+
+    <footer class="mt-10 pt-4 border-t border-gray-200 text-center text-sm text-gray-500">
+        Dashboard Interactivo desarrollado para la cátedra de Estadística y Probabilidad, UNVM.
+    </footer>
+
+    <script type="module">
+        // ====================================================================
+        // FUNCIÓN DE PROBABILIDAD TEÓRICA (PARA 1, 2 Y 3 DADOS)
+        // ====================================================================
+        
+        /**
+         * Calcula la distribución de probabilidad teórica para la suma de K dados.
+         * Implementado para K=1, K=2 y K=3.
+         * @param {number} k - Número de dados.
+         * @returns {Object<number, number>} Distribución de probabilidad {suma: P(suma)}.
+         */
+        function getTheoreticalDistribution(k) {
+            const results = {};
+            const totalOutcomes = Math.pow(6, k);
+
+            if (k === 1) {
+                // Sumas de 1 a 6. Probabilidad uniforme = 1/6
+                for (let i = 1; i <= 6; i++) {
+                    results[i] = 1 / 6;
+                }
+            } else if (k === 2) {
+                // Sumas de 2 a 12. Total de resultados = 36.
+                // Conteo de formas de obtener cada suma: 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1
+                const counts = { 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1 };
+                for (let sum = 2; sum <= 12; sum++) {
+                    results[sum] = counts[sum] / totalOutcomes;
+                }
+            } else if (k === 3) {
+                // Sumas de 3 a 18. Total de resultados = 216.
+                const counts = { 
+                    3: 1, 4: 3, 5: 6, 6: 10, 7: 15, 8: 21, 9: 25, 10: 27, 
+                    11: 27, 12: 25, 13: 21, 14: 15, 15: 10, 16: 6, 17: 3, 18: 1 
+                };
+                for (let sum = 3; sum <= 18; sum++) {
+                    results[sum] = counts[sum] / totalOutcomes;
+                }
+            }
+            return results;
+        }
+
+        // ====================================================================
+        // COMPONENTE 1: SIMULACIÓN DE PROBABILIDAD (Dado)
+        // ====================================================================
+
+        document.getElementById('runSimulation').addEventListener('click', runDiceSimulation);
+        document.getElementById('numDice').addEventListener('change', runDiceSimulation);
+
+        function runDiceSimulation() {
+            const N = parseInt(document.getElementById('numRolls').value, 10);
+            const K = parseInt(document.getElementById('numDice').value, 10);
+            
+            document.getElementById('simulationTitle').textContent = `Simulación: La Ley de los Grandes Números (${K} Dado${K > 1 ? 's' : ''})`;
+
+            if (isNaN(N) || N < 1) {
+                alertUser('Por favor, ingresa un número de lanzamientos (N) válido (mayor que 0).');
+                return;
+            }
+
+            const minSum = K;
+            const maxSum = 6 * K;
+            const counts = {};
+            const faces = [];
+            for (let i = minSum; i <= maxSum; i++) {
+                counts[i] = 0;
+                faces.push(i);
+            }
+
+            for (let i = 0; i < N; i++) {
+                let currentSum = 0;
+                for (let k = 0; k < K; k++) {
+                    currentSum += Math.floor(Math.random() * 6) + 1;
+                }
+                counts[currentSum]++;
+            }
+
+            displaySimulationResults(N, counts, faces, K);
+        }
+
+        function displaySimulationResults(N, counts, faces, K) {
+            const chartContainer = document.getElementById('chartContainer');
+            const resultsTableBody = document.getElementById('resultsTableBody');
+            const totalRollsDisplay = document.getElementById('totalRollsDisplay');
+            const chartLabels = document.getElementById('chartLabels');
+            const theoreticalNote = document.getElementById('theoreticalNote');
+            
+            const theoreticalDistribution = getTheoreticalDistribution(K);
+            
+            totalRollsDisplay.textContent = N.toLocaleString('es-AR');
+            chartLabels.innerHTML = '';
+            
+            const barWidth = 90 / faces.length; 
+            
+            faces.forEach(face => {
+                 const labelSpan = document.createElement('span');
+                 labelSpan.className = `text-center truncate`;
+                 labelSpan.style.width = `${barWidth}%`;
+                 labelSpan.textContent = face;
+                 chartLabels.appendChild(labelSpan);
+            });
+
+            chartContainer.innerHTML = '';
+            resultsTableBody.innerHTML = '';
+
+            let maxScale = 0.17;
+            if (K === 1 || K === 2 || K === 3) {
+                const maxTheoreticalProb = Math.max(...Object.values(theoreticalDistribution));
+                maxScale = Math.max(maxTheoreticalProb, 0.25);
+            }
+            const maxEmpiricalProb = Math.max(...faces.map(face => counts[face] / N), 0);
+            maxScale = Math.max(maxScale, maxEmpiricalProb);
+            
+            if (maxScale === 0) maxScale = 1; 
+
+            faces.forEach(face => {
+                const count = counts[face] || 0;
+                const relativeFrequency = count / N; 
+                const theoreticalProbability = theoreticalDistribution[face] || 0; 
+                const error = Math.abs(relativeFrequency - theoreticalProbability);
+                
+                const barHeightPercentage = (relativeFrequency / maxScale) * 100;
+                
+                const isTheoreticalKnown = (K === 1 || K === 2 || K === 3); 
+                const barColor = isTheoreticalKnown && error < 0.01 ? 
+                                'bg-green-400' :
+                                'bg-blue-400 hover:bg-blue-500';
+
+                // --- Creación de la barra (Gráfico) ---
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'h-full flex flex-col items-center justify-end p-1';
+                barWrapper.style.width = `${barWidth}%`;
+                barWrapper.innerHTML = `
+                    <div class="bar w-full ${barColor} cursor-pointer transition duration-200" style="height: ${barHeightPercentage}%;">
+                        <span class="bar-label" title="Frecuencia Relativa">${(relativeFrequency * 100).toFixed(1)}%</span>
+                    </div>
+                `;
+                chartContainer.appendChild(barWrapper);
+
+                // --- Creación de la fila (Tabla) ---
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition duration-150';
+
+                let theoreticalDisplay = isTheoreticalKnown ? theoreticalProbability.toFixed(4) : "N/A*";
+                let errorDisplay = isTheoreticalKnown ? error.toFixed(5) : "N/A*";
+                let errorClass = isTheoreticalKnown ? (error > 0.01 ? 'text-red-500' : 'text-green-600') : 'text-gray-400';
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${face}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${count.toLocaleString('es-AR')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-semibold">${relativeFrequency.toFixed(4)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${theoreticalDisplay}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm ${errorClass}">${errorDisplay}</td>
+                `;
+                resultsTableBody.appendChild(row);
+            });
+            
+            if (K > 3) {
+                 theoreticalNote.classList.remove('hidden');
+                 if (theoreticalNote.getAttribute('data-shown') !== 'true') {
+                     alertUser(`Advertencia para ${K} dados: La columna "Prob. Teórica" muestra "N/A*" ya que el cálculo analítico de la distribución de sumas es demasiado complejo para incluir en este simulador de una sola página.`);
+                     theoreticalNote.setAttribute('data-shown', 'true');
+                 }
+            } else {
+                 theoreticalNote.classList.add('hidden');
+                 theoreticalNote.setAttribute('data-shown', 'false');
+            }
+        }
+        
+        window.onload = () => {
+             if (document.getElementById('numRolls').value === '1000') {
+                runDiceSimulation();
+                setupConvergenceControls();
+             }
+        };
+
+
+        // ====================================================================
+        // COMPONENTE 2: VISUALIZACIÓN DE LA CONVERGENCIA
+        // ====================================================================
+
+        const convergenceNumDice = document.getElementById('convergenceNumDice');
+        const convergenceTargetSum = document.getElementById('convergenceTargetSum');
+        const convergenceMaxRolls = document.getElementById('convergenceMaxRolls');
+        const runConvergenceButton = document.getElementById('runConvergence');
+        const targetTheoreticalP = document.getElementById('targetTheoreticalP');
+        const convergenceStatus = document.getElementById('convergenceStatus');
+        const convergenceChart = document.getElementById('convergenceChart');
+        const ctx = convergenceChart.getContext('2d');
+        
+        // Almacenamiento global para los datos de la última simulación y sus píxeles
+        window.lastSimulatedData = []; // {N, h}
+        let currentConvergencePixelData = []; // {N, h, x_pix, y_pix}
+        let hoverPoint = null; // Punto de datos activo en el hover
+
+        // Listeners para hover
+        convergenceChart.addEventListener('mousemove', handleConvergenceHover);
+        convergenceChart.addEventListener('mouseleave', clearConvergenceHover);
+
+        convergenceNumDice.addEventListener('change', setupConvergenceControls);
+        convergenceTargetSum.addEventListener('change', updateTargetTheoreticalP);
+
+        function setupConvergenceControls() {
+            const K = parseInt(convergenceNumDice.value, 10);
+            const minSum = K;
+            const maxSum = 6 * K;
+            
+            convergenceTargetSum.innerHTML = '';
+            for (let i = minSum; i <= maxSum; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = i;
+                convergenceTargetSum.appendChild(option);
+            }
+            if (K === 2) convergenceTargetSum.value = 7;
+            if (K === 3) convergenceTargetSum.value = 10;
+            
+            updateTargetTheoreticalP();
+            drawConvergenceChart([], 0, K, 0); 
+            setTimeout(() => drawConvergenceChart([], 0, K, 0), 100);
+        }
+        
+        function updateTargetTheoreticalP() {
+            const K = parseInt(convergenceNumDice.value, 10);
+            const targetSum = parseInt(convergenceTargetSum.value, 10);
+            
+            if (isNaN(targetSum) || K < 1 || K > 3) {
+                targetTheoreticalP.textContent = 'N/A';
+                return;
+            }
+            
+            const theoreticalDistribution = getTheoreticalDistribution(K);
+            const P = theoreticalDistribution[targetSum] || 0;
+            
+            targetTheoreticalP.textContent = P.toFixed(5);
+        }
+
+        runConvergenceButton.addEventListener('click', runConvergenceSimulation);
+
+        async function runConvergenceSimulation() {
+            const K = parseInt(convergenceNumDice.value, 10);
+            const targetSum = parseInt(convergenceTargetSum.value, 10);
+            const N_max = parseInt(convergenceMaxRolls.value, 10);
+            
+            if (isNaN(K) || K < 1 || K > 3 || isNaN(targetSum) || isNaN(N_max) || N_max < 10) { 
+                alertUser('Por favor, revisa los parámetros de la simulación de convergencia. El número mínimo de lanzamientos es 10.');
+                return;
+            }
+            
+            const theoreticalDistribution = getTheoreticalDistribution(K);
+            const targetP = theoreticalDistribution[targetSum] || 0;
+            
+            runConvergenceButton.disabled = true;
+            runConvergenceButton.textContent = 'Simulando...';
+            convergenceStatus.textContent = `Iniciando simulación para Suma = ${targetSum} (P=${targetP.toFixed(5)})`;
+            
+            let count = 0;
+            window.lastSimulatedData = [];
+            const samplingInterval = Math.ceil(N_max / 100); 
+
+            for (let n = 1; n <= N_max; n++) {
+                let currentSum = 0;
+                for (let k = 0; k < K; k++) {
+                    currentSum += Math.floor(Math.random() * 6) + 1;
+                }
+                
+                if (currentSum === targetSum) {
+                    count++;
+                }
+                
+                if (n % samplingInterval === 0 || n === N_max) {
+                    const relativeFrequency = count / n;
+                    window.lastSimulatedData.push({ N: n, h: relativeFrequency });
+                    
+                    if (n % (samplingInterval * 5) === 0 || n === N_max) {
+                        drawConvergenceChart(window.lastSimulatedData, targetP, K, targetSum);
+                        convergenceStatus.textContent = `Lanzamientos: ${n.toLocaleString('es-AR')} | Frec. Relativa: ${relativeFrequency.toFixed(5)}`;
+                        await new Promise(resolve => requestAnimationFrame(resolve)); 
+                    }
+                }
+            }
+
+            // Dibujo final y resultados
+            drawConvergenceChart(window.lastSimulatedData, targetP, K, targetSum);
+            const finalH = count / N_max;
+            convergenceStatus.innerHTML = `
+                <span class="font-semibold text-green-700">¡Convergencia Finalizada!</span><br>
+                N: ${N_max.toLocaleString('es-AR')} | h: ${finalH.toFixed(5)} | Error: ${Math.abs(finalH - targetP).toFixed(5)}
+            `;
+            runConvergenceButton.disabled = false;
+            runConvergenceButton.textContent = 'Iniciar Convergencia';
+        }
+        
+        
+        /**
+         * Dibuja el gráfico de línea de convergencia en el canvas y el tooltip de hover.
+         * @param {Array<{N: number, h: number}>} data - Puntos de datos (N vs h).
+         * @param {number} targetP - Probabilidad teórica (P).
+         * @param {number} K - Número de dados.
+         * @param {number} sum - Suma objetivo.
+         * @param {object | null} hoverPoint - Punto de datos actual sobre el que se hace hover.
+         */
+        function drawConvergenceChart(data, targetP, K, sum, currentHoverPoint = null) {
+            const canvas = convergenceChart;
+            const h = canvas.height;
+            const padding = 20;
+
+            const container = document.getElementById('convergenceChartContainer');
+            canvas.style.width = '100%';
+            const newWidth = container.clientWidth - 4; 
+            if (canvas.width !== newWidth) {
+                canvas.width = newWidth;
+            }
+            const w = canvas.width;
+            
+            ctx.clearRect(0, 0, w, h);
+            
+            if (data.length === 0) {
+                 ctx.textAlign = 'center';
+                 ctx.fillStyle = '#9CA3AF';
+                 ctx.font = '14px Inter';
+                 ctx.fillText('Selecciona una suma e inicia la simulación', w / 2, h / 2);
+                 return;
+            }
+            
+            const maxN = data[data.length - 1].N;
+            
+            let maxHData = Math.max(...data.map(p => p.h), targetP);
+            let minHData = Math.min(...data.map(p => p.h), targetP);
+
+            const initialBuffer = 0.05;
+            const dynamicBuffer = Math.max(initialBuffer, 1 / Math.sqrt(maxN) * 2);
+            
+            let minH = Math.max(0, minHData - dynamicBuffer);
+            let maxH = Math.min(1, maxHData + dynamicBuffer);
+            
+            minH = Math.min(minH, targetP - initialBuffer);
+            maxH = Math.max(maxH, targetP + initialBuffer);
+            
+            const rangeH = maxH - minH;
+            const xStep = (w - 2 * padding) / maxN;
+            
+            
+            // 3. Dibujar la línea de Probabilidad Teórica (P)
+            const yP = h - padding - ((targetP - minH) / rangeH) * (h - 2 * padding);
+            
+            ctx.beginPath();
+            ctx.strokeStyle = '#9333ea';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 3]);
+            ctx.moveTo(padding, yP);
+            ctx.lineTo(w - padding, yP);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Etiqueta P
+            ctx.fillStyle = '#9333ea'; 
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'left';
+            ctx.fillText(`P = ${targetP.toFixed(4)}`, padding + 5, yP - 5);
+
+
+            // 4. Dibujar la línea de Frecuencia Relativa (h)
+            currentConvergencePixelData = []; // Reiniciar datos de píxeles
+            
+            ctx.beginPath();
+            ctx.strokeStyle = '#1D4ED8';
+            ctx.lineWidth = 2;
+
+            data.forEach((point, index) => {
+                const x = padding + (point.N * xStep);
+                const y = h - padding - ((point.h - minH) / rangeH) * (h - 2 * padding);
+                
+                const clampedY = Math.max(padding, Math.min(h - padding, y));
+                
+                // Almacenar coordenadas de píxeles para la detección de hover
+                currentConvergencePixelData.push({
+                    N: point.N,
+                    h: point.h,
+                    x_pix: x,
+                    y_pix: clampedY
+                });
+
+                if (index === 0) {
+                    ctx.moveTo(x, clampedY);
+                } else {
+                    ctx.lineTo(x, clampedY);
+                }
+            });
+
+            ctx.stroke();
+            
+            // 5. Dibujar Hover Point y Tooltip (si hoverPoint está disponible)
+            if (currentHoverPoint) {
+                const { N, h, x_pix, y_pix } = currentHoverPoint;
+                
+                // Dibujar círculo indicador
+                ctx.beginPath();
+                ctx.arc(x_pix, y_pix, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = 'white';
+                ctx.fill();
+                ctx.strokeStyle = '#EF4444'; // Rojo (Red-500)
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Dibujar Tooltip (Recuadro y Texto)
+                const tooltipText = `N: ${N.toLocaleString('es-AR')} | h: ${h.toFixed(5)}`;
+                ctx.font = '12px Inter';
+                const textWidth = ctx.measureText(tooltipText).width;
+                const boxWidth = textWidth + 16;
+                const boxHeight = 24;
+                
+                // Posicionar el recuadro sobre el punto
+                let boxX = x_pix - boxWidth / 2;
+                let boxY = y_pix - boxHeight - 10;
+                
+                // Ajuste de límites del recuadro
+                if (boxX < padding) boxX = padding;
+                if (boxX + boxWidth > w - padding) boxX = w - padding - boxWidth;
+                
+                // Fondo del recuadro
+                ctx.fillStyle = '#111827'; // Gris oscuro
+                ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
+                
+                // Texto
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.fillText(tooltipText, boxX + boxWidth / 2, boxY + boxHeight / 2 + 4); 
+            }
+            
+            // 6. Ejes de Referencia (simplificados)
+            
+            ctx.fillStyle = '#4B5563';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'left';
+            ctx.fillText('0', padding, h - 5);
+            ctx.textAlign = 'right';
+            ctx.fillText(`N=${maxN.toLocaleString('es-AR')}`, w - padding, h - 5);
+            
+            ctx.textAlign = 'right';
+            ctx.fillText(maxH.toFixed(3), padding - 5, padding + 5);
+            ctx.fillText(minH.toFixed(3), padding - 5, h - padding + 5);
+
+            ctx.textAlign = 'center';
+        }
+        
+        // --- Lógica de Hover ---
+
+        function handleConvergenceHover(event) {
+            const rect = convergenceChart.getBoundingClientRect();
+            // Calcular la posición del ratón en el canvas
+            const mouseX = event.clientX - rect.left;
+
+            if (currentConvergencePixelData.length === 0) return;
+
+            // Encontrar el punto más cercano en el eje X
+            const closestPoint = getClosestPoint(mouseX);
+            
+            // Comprobar si el punto más cercano está lo suficientemente cerca
+            const isHovering = closestPoint && Math.abs(closestPoint.x_pix - mouseX) < 10;
+
+            if (isHovering && closestPoint.N !== (hoverPoint ? hoverPoint.N : null)) {
+                // Nuevo punto de hover detectado
+                hoverPoint = closestPoint;
+                redrawChartAndTooltip();
+            } else if (!isHovering && hoverPoint) {
+                // El ratón se movió fuera del punto de hover actual
+                hoverPoint = null;
+                redrawChartAndTooltip();
+            }
+        }
+
+        function clearConvergenceHover() {
+            if (hoverPoint) {
+                hoverPoint = null;
+                redrawChartAndTooltip();
+            }
+        }
+
+        function getClosestPoint(mouseX) {
+            let minDistance = Infinity;
+            let closestPoint = null;
+
+            currentConvergencePixelData.forEach(point => {
+                const distance = Math.abs(point.x_pix - mouseX);
+                // Si la distancia es menor que la mínima encontrada
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestPoint = point;
+                }
+            });
+
+            // Solo devolver el punto si la distancia es razonable (ej. < 10 píxeles)
+            return minDistance < 15 ? closestPoint : null;
+        }
+
+        function redrawChartAndTooltip() {
+            // Reutilizar la lógica de dibujo con los últimos datos simulados
+            const K = parseInt(convergenceNumDice.value, 10);
+            const targetSum = parseInt(convergenceTargetSum.value, 10);
+            const theoreticalDistribution = getTheoreticalDistribution(K);
+            const targetP = theoreticalDistribution[targetSum] || 0;
+            
+            drawConvergenceChart(window.lastSimulatedData, targetP, K, targetSum, hoverPoint);
+        }
+
+        // ====================================================================
+        // FUNCIÓN DE ALERTA
+        // ====================================================================
+
+        function alertUser(message) {
+            const modalId = 'custom-alert-modal';
+            let modal = document.getElementById(modalId);
+
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = modalId;
+                modal.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 transition-opacity duration-300 opacity-0 pointer-events-none';
+                modal.innerHTML = `
+                    <div class="bg-white p-6 rounded-xl shadow-2xl max-w-sm w-full transform transition-transform duration-300 scale-95">
+                        <p class="text-gray-800 text-lg mb-4">${message}</p>
+                        <button id="close-alert" class="w-full px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition duration-150">Cerrar</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                document.getElementById('close-alert').addEventListener('click', () => {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                    modal.classList.remove('opacity-100');
+                });
+            } else {
+                modal.querySelector('p').textContent = message;
+            }
+
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.classList.add('opacity-100');
+            }, 10);
+        }
+
+    </script>
+</body>
+</html>
