@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación: Distribución Normal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        input[type=range] {
+            cursor: pointer;
+        }
+        canvas {
+            max-height: 450px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+
+    <div class="max-w-6xl mx-auto p-4 md:p-8">
+        <header class="mb-8 border-b border-slate-200 pb-6">
+            <h1 class="text-3xl font-bold text-indigo-700">Simulación: Distribución Normal</h1>
+            <p class="text-slate-600 mt-2">Explora cómo cambian la media ($\mu$) y la desviación estándar ($\sigma$) en la función de densidad de probabilidad.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Panel de Control -->
+            <div class="lg:col-span-1 space-y-6 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-semibold border-b pb-2">Parámetros</h2>
+                
+                <div class="slider-container">
+                    <label class="font-medium flex justify-between">
+                        Media ($\mu$): <span id="mu-val" class="text-indigo-600 font-bold">0</span>
+                    </label>
+                    <input type="range" id="mu" min="-10" max="10" step="0.1" value="0" class="w-full h-2 bg-slate-200 rounded-lg appearance-none">
+                    <p class="text-xs text-slate-500 italic">Desplaza la campana horizontalmente.</p>
+                </div>
+
+                <div class="slider-container">
+                    <label class="font-medium flex justify-between">
+                        Desv. Estándar ($\sigma$): <span id="sigma-val" class="text-indigo-600 font-bold">1</span>
+                    </label>
+                    <input type="range" id="sigma" min="0.1" max="5" step="0.1" value="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none">
+                    <p class="text-xs text-slate-500 italic">Controla la dispersión (qué tan ancha es la campana).</p>
+                </div>
+
+                <div class="mt-8 space-y-4">
+                    <h2 class="text-xl font-semibold border-b pb-2">Cálculo de Probabilidad</h2>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Tipo de Área:</label>
+                        <select id="area-type" class="w-full p-2 border rounded bg-slate-50">
+                            <option value="below">P(X < a)</option>
+                            <option value="between">P(a < X < b)</option>
+                            <option value="above">P(X > a)</option>
+                        </select>
+                    </div>
+
+                    <div id="input-a-container">
+                        <label class="block text-sm font-medium mb-1">Punto a:</label>
+                        <input type="number" id="val-a" value="1" step="0.1" class="w-full p-2 border rounded">
+                    </div>
+
+                    <div id="input-b-container" class="hidden">
+                        <label class="block text-sm font-medium mb-1">Punto b:</label>
+                        <input type="number" id="val-b" value="2" step="0.1" class="w-full p-2 border rounded">
+                    </div>
+                </div>
+
+                <div class="p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                    <p class="text-sm font-semibold text-indigo-900">Resultado:</p>
+                    <p id="probability-result" class="text-2xl font-bold text-indigo-700">P = 0.8413</p>
+                    <p id="z-score-info" class="text-xs text-indigo-600 mt-1"></p>
+                </div>
+            </div>
+
+            <!-- Visualización -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <canvas id="normalChart"></canvas>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-lg mb-2">Fundamento Matemático</h3>
+                    <p class="text-slate-700 mb-4">
+                        La función de densidad de probabilidad (PDF) para una variable aleatoria normal es:
+                        $$f(x | \mu, \sigma) = \frac{1}{\sigma \sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2}$$
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-600">
+                        <div class="p-3 bg-slate-50 rounded border">
+                            <strong class="text-slate-900">Propiedad 1:</strong> Es simétrica respecto a la media. La media, mediana y moda coinciden.
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded border">
+                            <strong class="text-slate-900">Propiedad 2:</strong> El área total bajo la curva siempre es exactamente 1.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('normalChart').getContext('2d');
+        let chart;
+
+        const muInput = document.getElementById('mu');
+        const sigmaInput = document.getElementById('sigma');
+        const muVal = document.getElementById('mu-val');
+        const sigmaVal = document.getElementById('sigma-val');
+        const areaType = document.getElementById('area-type');
+        const valA = document.getElementById('val-a');
+        const valB = document.getElementById('val-b');
+        const probResult = document.getElementById('probability-result');
+        const zScoreInfo = document.getElementById('z-score-info');
+        const inputBContainer = document.getElementById('input-b-container');
+
+        // Función de error aproximada para calcular CDF
+        function erf(x) {
+            const a1 = 0.254829592;
+            const a2 = -0.284496736;
+            const a3 = 1.421413741;
+            const a4 = -1.453152027;
+            const a5 = 1.061405429;
+            const p = 0.3275911;
+            const sign = (x < 0) ? -1 : 1;
+            x = Math.abs(x);
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+            return sign * y;
+        }
+
+        // Distribución Normal Acumulativa (CDF)
+        function normalCDF(x, mu, sigma) {
+            return 0.5 * (1 + erf((x - mu) / (sigma * Math.sqrt(2))));
+        }
+
+        function normalPDF(x, mu, sigma) {
+            const exponent = -0.5 * Math.pow((x - mu) / sigma, 2);
+            const coefficient = 1 / (sigma * Math.sqrt(2 * Math.PI));
+            return coefficient * Math.exp(exponent);
+        }
+
+        function updateChart() {
+            const mu = parseFloat(muInput.value);
+            const sigma = parseFloat(sigmaInput.value);
+            const a = parseFloat(valA.value);
+            const b = parseFloat(valB.value);
+            const type = areaType.value;
+
+            muVal.textContent = mu;
+            sigmaVal.textContent = sigma;
+
+            const labels = [];
+            const data = [];
+            const backgroundColors = [];
+
+            // Generar puntos para la curva (rango de +/- 4 sigmas desde la media)
+            const minX = -10;
+            const maxX = 10;
+            const step = 0.1;
+
+            for (let x = minX; x <= maxX; x += step) {
+                const y = normalPDF(x, mu, sigma);
+                labels.push(x.toFixed(1));
+                data.push(y);
+
+                // Lógica de sombreado
+                let inRange = false;
+                if (type === 'below' && x <= a) inRange = true;
+                else if (type === 'above' && x >= a) inRange = true;
+                else if (type === 'between' && x >= a && x <= b) inRange = true;
+
+                backgroundColors.push(inRange ? 'rgba(79, 70, 229, 0.4)' : 'rgba(203, 213, 225, 0.1)');
+            }
+
+            // Calcular Probabilidad
+            let p;
+            if (type === 'below') {
+                p = normalCDF(a, mu, sigma);
+                zScoreInfo.textContent = `Z = ${(a - mu) / sigma > 0 ? '+' : ''}${((a - mu) / sigma).toFixed(2)}`;
+            } else if (type === 'above') {
+                p = 1 - normalCDF(a, mu, sigma);
+                zScoreInfo.textContent = `Z > ${(a - mu) / sigma > 0 ? '+' : ''}${((a - mu) / sigma).toFixed(2)}`;
+            } else {
+                p = normalCDF(b, mu, sigma) - normalCDF(a, mu, sigma);
+                zScoreInfo.textContent = `Z entre ${((a - mu) / sigma).toFixed(2)} y ${((b - mu) / sigma).toFixed(2)}`;
+            }
+            
+            probResult.textContent = `P = ${Math.max(0, p).toFixed(4)}`;
+
+            if (chart) chart.destroy();
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'f(x)',
+                        data: data,
+                        borderColor: '#4f46e5',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        fill: true,
+                        backgroundColor: (context) => {
+                            const chart = context.chart;
+                            const {ctx, chartArea} = chart;
+                            if (!chartArea) return null;
+                            return backgroundColors;
+                        },
+                        segment: {
+                            backgroundColor: (ctx) => backgroundColors[ctx.p0DataIndex]
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { maxTicksLimit: 10 }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 1.2 / (sigma * Math.sqrt(2 * Math.PI)) // Escala dinámica
+                        }
+                    },
+                    animation: { duration: 400 }
+                }
+            });
+        }
+
+        // Listeners
+        [muInput, sigmaInput, valA, valB, areaType].forEach(el => {
+            el.addEventListener('input', () => {
+                if (areaType.value === 'between') {
+                    inputBContainer.classList.remove('hidden');
+                } else {
+                    inputBContainer.classList.add('hidden');
+                }
+                updateChart();
+            });
+        });
+
+        window.onload = updateChart;
+    </script>
+</body>
+</html>
