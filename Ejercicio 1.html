@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero Didáctico: Balanza de Pagos - Ejercicio 1</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- MathJax for rendering formulas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="mathjax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .selected-card {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+        .incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-indigo-900 text-white shadow-lg py-4 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fa-solid me-2 fa-scale-balanced text-indigo-300"></i>
+                    Tablero Didáctico: Balanza de Pagos
+                </h1>
+                <p class="text-indigo-200 text-sm">Análisis Económico | Práctico 8: Sector Externo - Ejercicio 1</p>
+            </div>
+            <div class="flex gap-2">
+                <button id="btn-mode-learn" onclick="switchMode('learn')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm font-semibold transition shadow">
+                    <i class="fa-solid fa-book-open mr-1"></i> Modo Guiado
+                </button>
+                <button id="btn-mode-quiz" onclick="switchMode('quiz')" class="px-4 py-2 bg-indigo-800 hover:bg-indigo-700 text-indigo-200 rounded-lg text-sm font-semibold transition">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> Modo Autoevaluación
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Transactions & Interaction (7 cols) -->
+        <section class="lg:col-span-7 space-y-6">
+
+            <!-- Card: Concept Reminder -->
+            <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-indigo-500">
+                <h2 class="text-lg font-bold text-indigo-950 mb-2 flex items-center">
+                    <i class="fa-solid fa-circle-info text-indigo-500 mr-2"></i> Regla de Signos y Cuentas
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs md:text-sm">
+                    <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
+                        <span class="font-bold text-emerald-700 flex items-center gap-1"><i class="fa-solid fa-plus-circle"></i> Ingreso / Entrada (+)</span>
+                        <p class="text-slate-600 mt-1">Exportaciones, recepción de rentas, transferencias recibidas, créditos recibidos del exterior, inversión extranjera en el país (VNP).</p>
+                    </div>
+                    <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
+                        <span class="font-bold text-rose-700 flex items-center gap-1"><i class="fa-solid fa-minus-circle"></i> Egreso / Salida (-)</span>
+                        <p class="text-slate-600 mt-1">Importaciones, pago de servicios/intereses, remisión de utilidades al exterior, depósitos o activos en el exterior (VNA).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: Dynamic Transacción Workspace -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <span id="tx-counter" class="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
+                        Transacción 1 de 9
+                    </span>
+                    <div class="flex gap-1" id="dots-container"></div>
+                </div>
+
+                <!-- Active Item Box -->
+                <div class="bg-indigo-50/70 border border-indigo-100 rounded-lg p-4 mb-5">
+                    <h3 class="text-xs uppercase font-semibold text-indigo-500 tracking-wider">Transacción a clasificar:</h3>
+                    <p id="tx-title" class="text-lg font-bold text-indigo-950 mt-1">1. Compra de un automóvil alemán.</p>
+                </div>
+
+                <!-- Selection Panel -->
+                <div id="interactive-panel" class="space-y-4">
+                    <!-- Step 1: Cuenta Principal -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">1. Cuenta Principal:</label>
+                        <select id="select-main-account" onchange="updateSubaccounts()" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm font-medium">
+                            <option value="">-- Seleccionar Cuenta Principal --</option>
+                            <option value="1 - CUENTA CORRIENTE">1 - CUENTA CORRIENTE</option>
+                            <option value="2 - CUENTA CAPITAL">2 - CUENTA CAPITAL</option>
+                            <option value="3 - CUENTA FINANCIERA">3 - CUENTA FINANCIERA</option>
+                        </select>
+                    </div>
+
+                    <!-- Step 2: Subcuenta Específica -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">2. Subcuenta Específica:</label>
+                        <select id="select-sub-account" class="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm font-medium">
+                            <option value="">-- Primero seleccione la Cuenta Principal --</option>
+                        </select>
+                    </div>
+
+                    <!-- Step 3: Sign selection -->
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">3. Signo / Movimiento de Divisas:</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button type="button" onclick="selectSign('+')" id="btn-sign-plus" class="p-3 border-2 border-slate-200 rounded-lg text-center font-bold hover:border-emerald-400 focus:outline-none transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-arrow-down-left text-emerald-600"></i> Ingreso / Positivo (+)
+                            </button>
+                            <button type="button" onclick="selectSign('-')" id="btn-sign-minus" class="p-3 border-2 border-slate-200 rounded-lg text-center font-bold hover:border-rose-400 focus:outline-none transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-arrow-up-right text-rose-600"></i> Egreso / Negativo (-)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex gap-3 pt-3">
+                        <button id="btn-check" onclick="checkAnswer()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg transition shadow">
+                            Verificar y Registrar
+                        </button>
+                        <button id="btn-next" onclick="nextItem()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-5 rounded-lg transition hidden">
+                            Siguiente <i class="fa-solid fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Feedback Area -->
+                <div id="feedback-box" class="mt-4 p-4 rounded-lg hidden text-sm"></div>
+            </div>
+
+            <!-- Items Quick Navigation Table -->
+            <div class="bg-white rounded-xl shadow-md p-5">
+                <h3 class="font-bold text-slate-800 mb-3 text-sm flex items-center justify-between">
+                    <span><i class="fa-solid fa-list-check text-indigo-500 mr-2"></i> Listado de Transacciones (Ejercicio 1)</span>
+                    <button onclick="resetAll()" class="text-xs text-indigo-600 hover:underline">Reiniciar todo</button>
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left text-slate-600">
+                        <thead class="bg-slate-100 text-slate-700 uppercase text-[10px] font-bold">
+                            <tr>
+                                <th class="p-2 w-8">N°</th>
+                                <th class="p-2">Transacción</th>
+                                <th class="p-2">Cuenta Principal</th>
+                                <th class="p-2">Subcuenta Específica</th>
+                                <th class="p-2 text-center w-12">Signo</th>
+                                <th class="p-2 text-center w-12">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="quick-nav-tbody" class="divide-y divide-slate-100">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Right Column: Balance of Payments Standard Table (5 cols) -->
+        <section class="lg:col-span-5 space-y-6">
+            <div class="bg-white rounded-xl shadow-md p-5 sticky top-6">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-bold text-indigo-950 text-base flex items-center">
+                        <i class="fa-solid fa-table-cells text-indigo-600 mr-2"></i> Esquema de Balanza de Pagos
+                    </h2>
+                    <span class="text-[11px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-mono">Esquema BP</span>
+                </div>
+
+                <p class="text-xs text-slate-500 mb-3">Visualización en tiempo real del registro de los 9 ítems en el esquema oficial de la cátedra:</p>
+
+                <!-- BP Table Structure -->
+                <div class="border border-slate-300 rounded-lg overflow-hidden text-xs">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-indigo-950 text-white font-semibold text-[11px]">
+                                <th class="p-2 text-left border-r border-indigo-900">Estructuras / Balanzas</th>
+                                <th class="p-1.5 text-center w-16 border-r border-indigo-900">Ingresos</th>
+                                <th class="p-1.5 text-center w-16 border-r border-indigo-900">Egresos</th>
+                                <th class="p-1.5 text-center w-16">Saldos</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 text-slate-700">
+
+                            <!-- 1. Cuenta Corriente -->
+                            <tr class="bg-slate-200 font-bold text-indigo-950">
+                                <td colspan="4" class="p-1.5 bg-slate-300">1 - CUENTA CORRIENTE</td>
+                            </tr>
+                            <tr class="hover:bg-indigo-50/40">
+                                <td class="p-1.5 pl-4 font-medium">1. Balanza Comercial</td>
+                                <td id="bp-ing-comercial" class="p-1.5 text-center font-mono text-emerald-700">-</td>
+                                <td id="bp-egr-comercial" class="p-1.5 text-center font-mono text-rose-700">-</td>
+                                <td id="bp-sal-comercial" class="p-1.5 text-center font-mono font-bold">-</td>
+                            </tr>
+                            <tr class="hover:bg-indigo-50/40">
+                                <td class="p-1.5 pl-4 font-medium">2. Servicios</td>
+                                <td id="bp-ing-servicios" class="p-1.5 text-center font-mono text-emerald-700">-</td>
+                                <td id="bp-egr-servicios" class="p-1.5 text-center font-mono text-rose-700">-</td>
+                                <td id="bp-sal-servicios" class="p-1.5 text-center font-mono font-bold">-</td>
+                            </tr>
+                            <tr class="hover:bg-indigo-50/40">
+                                <td class="p-1.5 pl-4 font-medium">3. Ingresos / Rentas</td>
+                                <td id="bp-ing-ingresos" class="p-1.5 text-center font-mono text-emerald-700">-</td>
+                                <td id="bp-egr-ingresos" class="p-1.5 text-center font-mono text-rose-700">-</td>
+                                <td id="bp-sal-ingresos" class="p-1.5 text-center font-mono font-bold">-</td>
+                            </tr>
+                            <tr class="hover:bg-indigo-50/40">
+                                <td class="p-1.5 pl-4 font-medium">4. Transferencias Corrientes</td>
+                                <td id="bp-ing-transferencias" class="p-1.5 text-center font-mono text-emerald-700">-</td>
+                                <td id="bp-egr-transferencias" class="p-1.5 text-center font-mono text-rose-700">-</td>
+                                <td id="bp-sal-transferencias" class="p-1.5 text-center font-mono font-bold">-</td>
+                            </tr>
+
+                            <!-- 2. Cuenta Capital -->
+                            <tr class="bg-slate-200 font-bold text-indigo-950">
+                                <td class="p-1.5">2 - CUENTA CAPITAL</td>
+                                <td id="bp-ing-capital" class="p-1.5 text-center font-mono text-emerald-700">-</td>
+                                <td id="bp-egr-capital" class="p-1.5 text-center font-mono text-rose-700">-</td>
+                                <td id="bp-sal-capital" class="p-1.5 text-center font-mono font-bold">-</td>
+                            </tr>
+
+                            <!-- 3. Cuenta Financiera -->
+                            <tr class="bg-slate-200 font-bold text-indigo-950">
+                                <td class="p-1.5">3 - CUENTA FINANCIERA</td>
+                                <td class="p-1.5 text-center font-semibold text-[10px] text-slate-600 uppercase">VNP</td>
+                                <td class="p-1.5 text-center font-semibold text-[10px] text-slate-600 uppercase">VNA</td>
+                                <td class="p-1.5 text-center"></td>
+                            </tr>
+                            <tr class="hover:bg-indigo-50/40">
+                                <td class="p-1.5 pl-4 text-[11px] text-slate-600 italic">Inv. directa + Inversión de cartera + Otras inv.</td>
+                                <td id="bp-vnp-financiera" class="p-1.5 text-center font-mono text-emerald-700">-</td>
+                                <td id="bp-vna-financiera" class="p-1.5 text-center font-mono text-rose-700">-</td>
+                                <td id="bp-sal-financiera" class="p-1.5 text-center font-mono font-bold">-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Theoretical summary badge -->
+                <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <h4 class="text-xs font-bold text-amber-900 flex items-center">
+                        <i class="fa-solid fa-lightbulb text-amber-500 mr-1.5"></i> Resumen del Ejercicio 1
+                    </h4>
+                    <p class="text-[11px] text-amber-800 mt-1">
+                        El ejercicio 1 solicita identificar <strong>en qué balanza se registra cada transacción y su signo</strong>. No incluye montos numéricos, por lo cual se indica la naturaleza del movimiento de divisas ($+$ o $-$).
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- JavaScript Data and Logic -->
+    <script>
+        const exercises = [
+            {
+                id: 1,
+                title: "1. Compra de un automóvil alemán.",
+                mainAccount: "1 - CUENTA CORRIENTE",
+                subAccount: "1. Balanza Comercial",
+                sign: "-",
+                explanation: "Es una <strong>importación de bienes</strong> finales (mercancías). Los bienes físicos comprados al exterior se registran en la <strong>1. Balanza Comercial</strong> de la <strong>1 - CUENTA CORRIENTE</strong>. Al ser una compra al extranjero, genera un <strong>egreso de divisas (Signo -)</strong>."
+            },
+            {
+                id: 2,
+                title: "2. Pagos de intereses por la deuda contraída con el BID.",
+                mainAccount: "1 - CUENTA CORRIENTE",
+                subAccount: "3. Ingresos",
+                sign: "-",
+                explanation: "El pago de intereses representa retribución al factor capital exterior y se asienta en la subcuenta <strong>3. Ingresos (Rentas)</strong> de la <strong>1 - CUENTA CORRIENTE</strong>. Al girarse los fondos al exterior, constituye un <strong>egreso de divisas (Signo -)</strong>."
+            },
+            {
+                id: 3,
+                title: "3. Ayuda humanitaria a países en crisis.",
+                mainAccount: "1 - CUENTA CORRIENTE",
+                subAccount: "4. Transferencias",
+                sign: "-",
+                explanation: "Es una transacción unilateral sin contrapartida que se registra en <strong>4. Transferencias</strong> dentro de la <strong>1 - CUENTA CORRIENTE</strong>. Como representa ayuda enviada a otro país, constituye una <strong>salida de divisas (Signo -)</strong>."
+            },
+            {
+                id: 4,
+                title: "4. Remisión de beneficios por parte de SAMSUNG a su casa matriz.",
+                mainAccount: "1 - CUENTA CORRIENTE",
+                subAccount: "3. Ingresos",
+                sign: "-",
+                explanation: "La remisión de utilidades y dividendos generados por una empresa transnacional a su matriz es renta del capital extranjero. Se registra en <strong>3. Ingresos</strong> en la <strong>1 - CUENTA CORRIENTE</strong> como un <strong>egreso de divisas (Signo -)</strong>."
+            },
+            {
+                id: 5,
+                title: "5. Compra de una planta productora de alimentos por parte de una empresa alimenticia de EE.UU.",
+                mainAccount: "3 - CUENTA FINANCIERA",
+                subAccount: "Inversión Directa (VNP)",
+                sign: "+",
+                explanation: "Constituye una <strong>Inversión Extranjera Directa</strong> en el país. Se anota en la <strong>3 - CUENTA FINANCIERA</strong> bajo el rubro <strong>Inversión Directa</strong>. Al ingresar divisas estadounidenses para la adquisición, representa un <strong>ingreso de divisas / aumento de pasivos con no residentes (Signo + / VNP)</strong>."
+            },
+            {
+                id: 6,
+                title: "6. Crédito recibido por el gobierno de parte del FMI.",
+                mainAccount: "3 - CUENTA FINANCIERA",
+                subAccount: "Otras Inversiones / Pasivos (VNP)",
+                sign: "+",
+                explanation: "Un préstamo recibido de organismos internacionales es una operación de financiamiento que se registra en la <strong>3 - CUENTA FINANCIERA</strong> (Otras Inversiones / Variación Neta de Pasivos VNP). Como ingresan los desembolsos en moneda extranjera, tiene <strong>signo positivo (Ingreso / +)</strong>."
+            },
+            {
+                id: 7,
+                title: "7. Contratación de consultoría a profesionales de Uruguay.",
+                mainAccount: "1 - CUENTA CORRIENTE",
+                subAccount: "2. Servicios",
+                sign: "-",
+                explanation: "Es una <strong>importación de servicios reales</strong> (servicios técnicos/profesionales). Se ubica en la subcuenta <strong>2. Servicios</strong> de la <strong>1 - CUENTA CORRIENTE</strong> y genera una <strong>salida de divisas (Signo -)</strong> por el pago del servicio."
+            },
+            {
+                id: 8,
+                title: "8. Venta de soja a China.",
+                mainAccount: "1 - CUENTA CORRIENTE",
+                subAccount: "1. Balanza Comercial",
+                sign: "+",
+                explanation: "Es una <strong>exportación de bienes</strong> (mercancías). Se anota en la subcuenta <strong>1. Balanza Comercial</strong> de la <strong>1 - CUENTA CORRIENTE</strong>. La venta al resto del mundo origina un <strong>ingreso de divisas (Signo +)</strong>."
+            },
+            {
+                id: 9,
+                title: "9. Depósitos realizados por ahorristas argentinos en bancos extranjeros.",
+                mainAccount: "3 - CUENTA FINANCIERA",
+                subAccount: "Otras Inversiones / Activos (VNA)",
+                sign: "-",
+                explanation: "Es una colocación de activos financieros de residentes en el exterior (Salida de capitales/Variación Neta de Activos VNA). Se asienta en la <strong>3 - CUENTA FINANCIERA</strong>. Al transferirse capital al exterior, representa un <strong>egreso de divisas del sistema bancario local (Signo -)</strong>."
+            }
+        ];
+
+        const subaccountOptions = {
+            "1 - CUENTA CORRIENTE": [
+                "1. Balanza Comercial",
+                "2. Servicios",
+                "3. Ingresos",
+                "4. Transferencias"
+            ],
+            "2 - CUENTA CAPITAL": [
+                "Cuenta Capital (Transf. capital / Activos no financieros)"
+            ],
+            "3 - CUENTA FINANCIERA": [
+                "Inversión Directa (VNP)",
+                "Inversión de Cartera",
+                "Otras Inversiones / Pasivos (VNP)",
+                "Otras Inversiones / Activos (VNA)",
+                "Variación de Reservas"
+            ]
+        };
+
+        let currentIndex = 0;
+        let selectedSign = null;
+        let userAnswers = new Array(exercises.length).fill(null);
+        let mode = 'learn';
+
+        function init() {
+            renderDots();
+            renderQuickNav();
+            loadItem(0);
+        }
+
+        function switchMode(newMode) {
+            mode = newMode;
+            document.getElementById('btn-mode-learn').className = mode === 'learn' 
+                ? "px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold transition shadow" 
+                : "px-4 py-2 bg-indigo-900 hover:bg-indigo-800 text-indigo-300 rounded-lg text-sm font-semibold transition";
+            
+            document.getElementById('btn-mode-quiz').className = mode === 'quiz' 
+                ? "px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold transition shadow" 
+                : "px-4 py-2 bg-indigo-900 hover:bg-indigo-800 text-indigo-300 rounded-lg text-sm font-semibold transition";
+            
+            resetAll();
+        }
+
+        function updateSubaccounts() {
+            const mainAcc = document.getElementById('select-main-account').value;
+            const subSelect = document.getElementById('select-sub-account');
+            subSelect.innerHTML = '<option value="">-- Seleccionar Subcuenta --</option>';
+
+            if (mainAcc && subaccountOptions[mainAcc]) {
+                subaccountOptions[mainAcc].forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.innerText = sub;
+                    subSelect.appendChild(opt);
+                });
+            }
+        }
+
+        function renderDots() {
+            const container = document.getElementById('dots-container');
+            container.innerHTML = '';
+            exercises.forEach((_, idx) => {
+                const dot = document.createElement('div');
+                dot.className = `w-2.5 h-2.5 rounded-full ${idx === currentIndex ? 'bg-indigo-600 scale-125' : 'bg-slate-300'} transition-all duration-200 cursor-pointer`;
+                dot.onclick = () => loadItem(idx);
+                container.appendChild(dot);
+            });
+        }
+
+        function loadItem(index) {
+            currentIndex = index;
+            const ex = exercises[index];
+            
+            document.getElementById('tx-counter').innerText = `Transacción ${index + 1} de ${exercises.length}`;
+            document.getElementById('tx-title').innerText = ex.title;
+            
+            // Reset fields
+            document.getElementById('select-main-account').value = "";
+            document.getElementById('select-sub-account').innerHTML = '<option value="">-- Primero seleccione la Cuenta Principal --</option>';
+            selectedSign = null;
+            resetSignButtons();
+
+            // Hide feedback
+            const fbBox = document.getElementById('feedback-box');
+            fbBox.classList.add('hidden');
+
+            document.getElementById('btn-next').classList.add('hidden');
+            document.getElementById('btn-check').classList.remove('hidden');
+
+            // Restore state if answered
+            if (userAnswers[index]) {
+                const state = userAnswers[index];
+                document.getElementById('select-main-account').value = state.mainAccount;
+                updateSubaccounts();
+                document.getElementById('select-sub-account').value = state.subAccount;
+                selectSign(state.sign);
+                showFeedback(state.isCorrect);
+            }
+
+            renderDots();
+            highlightNavRow(index);
+        }
+
+        function selectSign(sign) {
+            selectedSign = sign;
+            const btnPlus = document.getElementById('btn-sign-plus');
+            const btnMinus = document.getElementById('btn-sign-minus');
+
+            btnPlus.className = "p-3 border-2 rounded-lg text-center font-bold focus:outline-none transition flex items-center justify-center gap-2 " + 
+                (sign === '+' ? "border-emerald-600 bg-emerald-50 text-emerald-800" : "border-slate-200 text-slate-700 hover:border-emerald-300");
+
+            btnMinus.className = "p-3 border-2 rounded-lg text-center font-bold focus:outline-none transition flex items-center justify-center gap-2 " + 
+                (sign === '-' ? "border-rose-600 bg-rose-50 text-rose-800" : "border-slate-200 text-slate-700 hover:border-rose-300");
+        }
+
+        function resetSignButtons() {
+            document.getElementById('btn-sign-plus').className = "p-3 border-2 border-slate-200 rounded-lg text-center font-bold text-slate-700 hover:border-emerald-300 focus:outline-none transition flex items-center justify-center gap-2";
+            document.getElementById('btn-sign-minus').className = "p-3 border-2 border-slate-200 rounded-lg text-center font-bold text-slate-700 hover:border-rose-300 focus:outline-none transition flex items-center justify-center gap-2";
+        }
+
+        function checkAnswer() {
+            const selectedMain = document.getElementById('select-main-account').value;
+            const selectedSub = document.getElementById('select-sub-account').value;
+
+            if (!selectedMain) {
+                alert("Por favor seleccione la Cuenta Principal.");
+                return;
+            }
+            if (!selectedSub) {
+                alert("Por favor seleccione la Subcuenta Específica.");
+                return;
+            }
+            if (!selectedSign) {
+                alert("Por favor seleccione el signo de la transacción (+ o -).");
+                return;
+            }
+
+            const currentEx = exercises[currentIndex];
+            const isCorrectMain = selectedMain === currentEx.mainAccount;
+            const isCorrectSub = selectedSub === currentEx.subAccount;
+            const isCorrectSign = selectedSign === currentEx.sign;
+            const isCorrect = isCorrectMain && isCorrectSub && isCorrectSign;
+
+            userAnswers[currentIndex] = {
+                mainAccount: selectedMain,
+                subAccount: selectedSub,
+                sign: selectedSign,
+                isCorrect: isCorrect
+            };
+
+            showFeedback(isCorrect);
+            updateBPTable();
+            renderQuickNav();
+
+            document.getElementById('btn-check').classList.add('hidden');
+            if (currentIndex < exercises.length - 1) {
+                document.getElementById('btn-next').classList.remove('hidden');
+            }
+        }
+
+        function showFeedback(isCorrect) {
+            const currentEx = exercises[currentIndex];
+            const fbBox = document.getElementById('feedback-box');
+            fbBox.classList.remove('hidden', 'correct', 'incorrect');
+
+            if (isCorrect) {
+                fbBox.classList.add('correct');
+                fbBox.innerHTML = `
+                    <div class="font-bold mb-1 flex items-center gap-2 text-emerald-900">
+                        <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i> ¡Respuesta Correcta!
+                    </div>
+                    <p class="text-xs text-emerald-950 mt-1">${currentEx.explanation}</p>
+                `;
+            } else {
+                fbBox.classList.add('incorrect');
+                fbBox.innerHTML = `
+                    <div class="font-bold mb-1 flex items-center gap-2 text-rose-900">
+                        <i class="fa-solid fa-circle-xmark text-rose-600 text-lg"></i> Revisemos la clasificación
+                    </div>
+                    <p class="text-xs text-rose-950 mb-2">
+                        <strong>Cuenta Principal:</strong> ${currentEx.mainAccount}<br>
+                        <strong>Subcuenta Específica:</strong> ${currentEx.subAccount}<br>
+                        <strong>Signo:</strong> ${currentEx.sign === '+' ? 'Ingreso (+)' : 'Egreso (-)'}
+                    </p>
+                    <p class="text-xs text-rose-900 border-t border-rose-200 pt-2">${currentEx.explanation}</p>
+                `;
+            }
+        }
+
+        function nextItem() {
+            if (currentIndex < exercises.length - 1) {
+                loadItem(currentIndex + 1);
+            }
+        }
+
+        function renderQuickNav() {
+            const tbody = document.getElementById('quick-nav-tbody');
+            tbody.innerHTML = '';
+
+            exercises.forEach((ex, idx) => {
+                const ans = userAnswers[idx];
+                const tr = document.createElement('tr');
+                tr.className = `cursor-pointer hover:bg-indigo-50 transition ${idx === currentIndex ? 'bg-indigo-50/80 font-semibold' : ''}`;
+                tr.onclick = () => loadItem(idx);
+
+                let statusBadge = `<span class="text-slate-400 font-mono text-[11px]">-</span>`;
+                let mainLabel = "-";
+                let subLabel = "-";
+                let signLabel = "-";
+
+                if (ans) {
+                    mainLabel = ans.mainAccount.replace(" - CUENTA ", " ");
+                    subLabel = ans.subAccount;
+                    signLabel = ans.sign === '+' ? `<span class="text-emerald-600 font-bold">+</span>` : `<span class="text-rose-600 font-bold">-</span>`;
+                    
+                    statusBadge = ans.isCorrect 
+                        ? `<i class="fa-solid fa-check text-emerald-600"></i>`
+                        : `<i class="fa-solid fa-xmark text-rose-500"></i>`;
+                }
+
+                tr.innerHTML = `
+                    <td class="p-2 font-mono text-[11px]">${ex.id}</td>
+                    <td class="p-2 font-medium text-slate-800 truncate max-w-[150px]" title="${ex.title}">${ex.title.split('. ')[1]}</td>
+                    <td class="p-2 text-[11px] text-slate-600">${mainLabel}</td>
+                    <td class="p-2 text-[11px] text-indigo-900 font-medium">${subLabel}</td>
+                    <td class="p-2 text-center font-mono">${signLabel}</td>
+                    <td class="p-2 text-center text-xs">${statusBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function highlightNavRow(index) {
+            renderQuickNav();
+        }
+
+        function updateBPTable() {
+            const keys = ['comercial', 'servicios', 'ingresos', 'transferencias', 'capital', 'financiera'];
+            keys.forEach(k => {
+                if(k === 'financiera') {
+                    document.getElementById(`bp-vnp-${k}`).innerText = '-';
+                    document.getElementById(`bp-vna-${k}`).innerText = '-';
+                } else {
+                    document.getElementById(`bp-ing-${k}`).innerText = '-';
+                    document.getElementById(`bp-egr-${k}`).innerText = '-';
+                }
+                document.getElementById(`bp-sal-${k}`).innerText = '-';
+            });
+
+            userAnswers.forEach((ans, idx) => {
+                if (!ans) return;
+                const ex = exercises[idx];
+                
+                let sub = ans.subAccount;
+                let sign = ans.sign;
+
+                let fieldKey = "";
+                if (sub.includes("Comercial")) fieldKey = "comercial";
+                else if (sub.includes("Servicios")) fieldKey = "servicios";
+                else if (sub.includes("Ingresos")) fieldKey = "ingresos";
+                else if (sub.includes("Transferencias")) fieldKey = "transferencias";
+                else if (ans.mainAccount.includes("CAPITAL")) fieldKey = "capital";
+                else if (ans.mainAccount.includes("FINANCIERA")) fieldKey = "financiera";
+
+                if (fieldKey) {
+                    if (fieldKey === 'financiera') {
+                        if (sign === '+') {
+                            appendCell(`bp-vnp-financiera`, `[Item ${ex.id}] +`);
+                        } else {
+                            appendCell(`bp-vna-financiera`, `[Item ${ex.id}] -`);
+                        }
+                    } else {
+                        if (sign === '+') {
+                            appendCell(`bp-ing-${fieldKey}`, `[${ex.id}] +`);
+                        } else {
+                            appendCell(`bp-egr-${fieldKey}`, `[${ex.id}] -`);
+                        }
+                    }
+                    document.getElementById(`bp-sal-${fieldKey}`).innerText = "Reg.";
+                }
+            });
+        }
+
+        function appendCell(elementId, text) {
+            const el = document.getElementById(elementId);
+            if (el.innerText === '-') {
+                el.innerText = text;
+            } else {
+                el.innerText += `, ${text}`;
+            }
+        }
+
+        function resetAll() {
+            userAnswers = new Array(exercises.length).fill(null);
+            loadItem(0);
+            updateBPTable();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

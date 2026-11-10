@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tablero Didáctico: Mercado de Divisas (Ejercicios 7, 8 y 9)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para visualización interactiva de oferta y demanda -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .step-card {
+            transition: all 0.3s ease;
+        }
+        .step-card:hover {
+            transform: translateY(-2px);
+        }
+        .tab-active {
+            border-bottom: 3px solid #2563eb;
+            color: #1d4ed8;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white p-4 sm:p-6 shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <span class="bg-blue-500/30 text-blue-200 text-xs font-semibold px-3 py-1 rounded-full border border-blue-400/30">
+                    UNVM - Análisis Económico 2026
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight mt-1">
+                    Tablero Didáctico: Mercado de Divisas
+                </h1>
+                <p class="text-slate-300 text-sm mt-1">
+                    Resolución interactiva paso a paso para los Ejercicios 7, 8 y 9 (Práctico 8: Sector Externo)
+                </p>
+            </div>
+            
+            <!-- Quick Navigation Buttons -->
+            <div class="flex flex-wrap gap-2">
+                <button onclick="switchTab(7)" id="tab-btn-7" class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-md hover:bg-blue-500 transition">
+                    Ejercicio 7 <span class="text-xs font-normal opacity-80">(TC Flexible / Depreciación)</span>
+                </button>
+                <button onclick="switchTab(8)" id="tab-btn-8" class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition">
+                    Ejercicio 8 <span class="text-xs font-normal opacity-80">(Aumento Exportaciones)</span>
+                </button>
+                <button onclick="switchTab(9)" id="tab-btn-9" class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition">
+                    Ejercicio 9 <span class="text-xs font-normal opacity-80">(TC Fijo / Intervención)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto w-full flex-grow p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Problem Definition & Step-by-Step Solver (5 cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+
+            <!-- Problem Header Box -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+                    <span id="ex-badge" class="bg-blue-100 text-blue-800 font-bold text-xs px-2.5 py-1 rounded">
+                        EJERCICIO 7
+                    </span>
+                    <span id="regime-badge" class="bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-1 rounded flex items-center gap-1">
+                        <i class="fa-solid fa-code-compare"></i> Régimen Flexible
+                    </span>
+                </div>
+                <h2 id="ex-title" class="text-lg font-bold text-slate-900">
+                    Mercado Cambiario bajo Tipo de Cambio Flexible
+                </h2>
+                <div id="ex-statement" class="mt-2 text-sm text-slate-600 space-y-2">
+                    <!-- Dynamic statement text inserted via JS -->
+                </div>
+
+                <!-- Consignas List Box -->
+                <div class="mt-4 pt-3 border-t border-slate-100 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 flex items-center">
+                        <i class="fa-solid fa-clipboard-list mr-1.5 text-blue-600"></i> Consignas del Trabajo Práctico:
+                    </h4>
+                    <ul id="ex-consignas" class="text-xs space-y-1.5 text-slate-600">
+                        <!-- Dynamic consignas list inserted via JS -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Interactive Control Panel & Step Navigator -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex-grow flex flex-col justify-between">
+                <div>
+                    <h3 class="text-base font-bold text-slate-800 mb-3 flex items-center justify-between">
+                        <span><i class="fa-solid fa-list-check text-blue-600 mr-2"></i>Pasos de Resolución</span>
+                        <span id="step-indicator" class="text-xs text-slate-500 font-normal">Paso 1 de 4</span>
+                    </h3>
+
+                    <!-- Step Selection Tabs -->
+                    <div class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl mb-4 text-xs font-semibold text-center" id="step-tabs">
+                        <!-- Rendered by JS -->
+                    </div>
+
+                    <!-- Step Content Container -->
+                    <div id="step-container" class="space-y-4">
+                        <!-- Dynamic step resolution text and equations -->
+                    </div>
+                </div>
+
+                <!-- Step Navigation Controls -->
+                <div class="flex items-center justify-between pt-4 mt-6 border-t border-slate-100">
+                    <button id="prev-step-btn" onclick="prevStep()" class="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-arrow-left mr-1"></i> Anterior
+                    </button>
+                    <button id="next-step-btn" onclick="nextStep()" class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow transition disabled:opacity-40">
+                        Siguiente <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Theoretical Summary & Key Concepts Card -->
+            <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white p-5 rounded-2xl shadow-md">
+                <h4 class="text-sm font-bold text-blue-300 mb-2 flex items-center">
+                    <i class="fa-solid fa-lightbulb mr-2 text-yellow-400"></i> Concepto Clave
+                </h4>
+                <p id="theory-concept" class="text-xs text-slate-200 leading-relaxed">
+                    <!-- Dynamic theory concept -->
+                </p>
+            </div>
+        </div>
+
+        <!-- Right Column: Graphical & Analytical Dashboard (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+
+            <!-- Dynamic Graph Card -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base flex items-center">
+                            <i class="fa-solid fa-chart-line text-indigo-600 mr-2"></i>
+                            Gráfico del Mercado de Divisas (U$S)
+                        </h3>
+                        <p class="text-xs text-slate-500">
+                            Eje Y: Tipo de Cambio ($/U$S) | Eje X: Cantidad de Divisas (Q)
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center text-xs font-semibold px-2 py-1 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-600 mr-1.5"></span> Inicial
+                        </span>
+                        <span id="shift-legend-badge" class="inline-flex items-center text-xs font-semibold px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200 hidden">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-600 mr-1.5"></span> Desplazamiento
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Canvas Chart -->
+                <div class="relative w-full h-80 sm:h-96">
+                    <canvas id="marketChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Equilibrium Results Metrics Card -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                    <span class="text-xs text-slate-500 font-medium block mb-1">Tipo de Cambio Equilibrio (TC*)</span>
+                    <span id="stat-tc" class="text-2xl font-black text-blue-600">$4,40</span>
+                    <span id="stat-tc-sub" class="text-xs text-slate-400 block mt-0.5">$/U$S</span>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                    <span class="text-xs text-slate-500 font-medium block mb-1">Cantidad Equilibrio (Q*)</span>
+                    <span id="stat-q" class="text-2xl font-black text-emerald-600">1.940</span>
+                    <span id="stat-q-sub" class="text-xs text-slate-400 block mt-0.5">millones U$S</span>
+                </div>
+
+                <div class="col-span-2 sm:col-span-1 bg-white p-4 rounded-xl border border-slate-200 shadow-sm text-center">
+                    <span class="text-xs text-slate-500 font-medium block mb-1">Estado del Mercado</span>
+                    <span id="stat-status" class="text-lg font-bold text-slate-800">Equilibrio</span>
+                    <span id="stat-status-sub" class="text-xs text-indigo-600 font-semibold block mt-0.5">Qd = Qo</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Simulator / Calculator (Interactive Playground) -->
+            <div class="bg-slate-100 p-5 rounded-2xl border border-slate-200">
+                <h4 class="text-sm font-bold text-slate-800 mb-3 flex items-center">
+                    <i class="fa-solid fa-sliders text-indigo-600 mr-2"></i> Simulador de Precios de Bienes (Importaciones / Exportaciones)
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div class="bg-white p-3 rounded-xl border border-slate-200">
+                        <label class="block font-semibold text-slate-700 mb-1">Precio en U$S del bien extranjero:</label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-400 font-bold">U$S</span>
+                            <input type="number" id="sim-usd-price" value="40000" class="w-full border border-slate-300 rounded px-2 py-1 text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" oninput="calculateSimulatedPrices()">
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Ej: Cosechadora fabricada en EE.UU. (Ej. 7-d)</p>
+                    </div>
+
+                    <div class="bg-white p-3 rounded-xl border border-slate-200">
+                        <label class="block font-semibold text-slate-700 mb-1">Precio en Pesos ($) para comprador local:</label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-emerald-600 font-bold">$</span>
+                            <input type="text" id="sim-ars-price" readonly value="$176.000" class="w-full bg-slate-50 border border-slate-200 rounded px-2 py-1 text-emerald-700 font-bold">
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Calculado como: <code class="bg-slate-100 px-1 rounded">Precio U$S × TC*</code></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto py-4 text-center text-xs text-slate-500">
+        <p>Tablero Interactivo Didáctico para la Cátedra de Análisis Económico - IAPCS (UNVM)</p>
+    </footer>
+
+    <!-- Application Script -->
+    <script>
+        // Global variables for active state
+        let currentExercise = 7;
+        let currentStep = 0;
+        let chartInstance = null;
+
+        // Exercise Data Models
+        const exercisesData = {
+            7: {
+                title: "Ejercicio 7: TC Flexible y Choque de Demanda",
+                regime: "Régimen Flexible",
+                regimeClass: "bg-emerald-100 text-emerald-800",
+                statement: `
+                    <p>Los siguientes datos corresponden al mercado de divisas de Argentina, bajo un sistema de <strong>Tipo de Cambio Flexible</strong>:</p>
+                    <p class="font-mono bg-white p-2 rounded text-center text-blue-900 font-bold border border-slate-200">
+                        Q<sub>D</sub> = 2.600 - 150 · TC &nbsp;&nbsp;|&nbsp;&nbsp; Q<sub>O</sub> = 1.500 + 100 · TC
+                    </p>
+                `,
+                consignas: [
+                    { id: 0, label: "a-", text: "Calcular analíticamente el tipo de cambio de equilibrio. Graficar." },
+                    { id: 1, label: "b-", text: "Suponga que se eleva la demanda de divisas en 200 a cada nivel de tipo de cambio. ¿Cuál es el nuevo TC? ¿Qué efecto tiene sobre las importaciones? Grafique." },
+                    { id: 2, label: "c-", text: "¿La moneda local se apreció o devaluó? ¿Cuál será el efecto en la Balanza Comercial del nuevo TC, la favorece o no? ¿Por qué?" },
+                    { id: 3, label: "d-", text: "Volviendo a la situación inicial, suponga que el precio de una cosechadora fabricada en EEUU es de U$S 40.000. ¿Cuál es el precio en moneda nacional que debe pagar un productor local para adquirirla?" }
+                ],
+                steps: [
+                    {
+                        title: "a) Equilibrio Inicial",
+                        description: "Igualamos la oferta y la demanda para encontrar el tipo de cambio de equilibrio inicial (TC*).",
+                        mathHTML: `
+                            <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs font-mono space-y-1 text-slate-800">
+                                <p><strong>1. Igualación:</strong> Q<sub>D</sub> = Q<sub>O</sub></p>
+                                <p>2.600 - 150·TC = 1.500 + 100·TC</p>
+                                <p><strong>2. Agrupación:</strong> 2.600 - 1.500 = 100·TC + 150·TC</p>
+                                <p>1.100 = 250·TC</p>
+                                <p><strong>3. Resultado:</strong> <span class="text-blue-700 font-bold">TC* = 1.100 / 250 = 4,40 $/U$S</span></p>
+                                <p><strong>4. Cantidad:</strong> Q* = 1.500 + 100(4,40) = <span class="text-emerald-700 font-bold">1.940 unidades</span></p>
+                            </div>
+                        `,
+                        tcEq: 4.40,
+                        qEq: 1940,
+                        qdFn: (tc) => 2600 - 150 * tc,
+                        qoFn: (tc) => 1500 + 100 * tc,
+                        shiftedQdFn: null,
+                        shiftedQoFn: null,
+                        statusText: "Equilibrio Inicial",
+                        concept: "En un régimen flexible, el precio del dólar (TC) se determina libremente por la intersección de las fuerzas del mercado (oferta y demanda)."
+                    },
+                    {
+                        title: "b) Incremento de Demanda",
+                        description: "La demanda de divisas se eleva en 200 unidades a cada nivel de TC (ej: mayor demanda de importaciones o viajes al exterior).",
+                        mathHTML: `
+                            <div class="bg-purple-50 p-3 rounded-lg border border-purple-200 text-xs font-mono space-y-1 text-slate-800">
+                                <p><strong>Nueva Demanda:</strong> Q<sub>D</sub>' = (2.600 + 200) - 150·TC = <strong>2.800 - 150·TC</strong></p>
+                                <p><strong>Igualación:</strong> 2.800 - 150·TC = 1.500 + 100·TC</p>
+                                <p>1.300 = 250·TC &rArr; <span class="text-purple-700 font-bold">TC' = 5,20 $/U$S</span></p>
+                                <p>Q' = 1.500 + 100(5,20) = <span class="text-emerald-700 font-bold">2.020 unidades</span></p>
+                                <p class="text-slate-600 mt-1 font-sans"><strong>Efecto en Impo:</strong> El mayor tipo de cambio encarece las divisas, frenando parcialmente el aumento inicial del consumo importado.</p>
+                            </div>
+                        `,
+                        tcEq: 5.20,
+                        qEq: 2020,
+                        qdFn: (tc) => 2600 - 150 * tc,
+                        qoFn: (tc) => 1500 + 100 * tc,
+                        shiftedQdFn: (tc) => 2800 - 150 * tc,
+                        shiftedQoFn: null,
+                        statusText: "Nuevo Equilibrio (TC = 5,20)",
+                        concept: "Un aumento en la demanda de divisas genera un exceso de demanda al TC inicial, presionando el TC hacia arriba."
+                    },
+                    {
+                        title: "c) Devaluación y Balanza",
+                        description: "¿La moneda local se apreció o devaluó? ¿Favorece a la Balanza Comercial?",
+                        mathHTML: `
+                            <div class="bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-slate-800 space-y-2">
+                                <p><strong>1. Depreciación / Devaluación:</strong> La moneda local perdió valor. Ahora se necesitan <strong>$5,20</strong> (en lugar de $4,40) para comprar 1 U$S.</p>
+                                <p><strong>2. Efecto en Balanza Comercial:</strong> <span class="font-bold text-amber-900">Favorece la Balanza Comercial</span> (X - M).</p>
+                                <ul class="list-disc ml-4 space-y-1 text-[11px]">
+                                    <li>Las <strong>Exportaciones (X)</strong> ganan competitividad (los extranjeros ven nuestros productos más baratos).</li>
+                                    <li>Las <strong>Importaciones (M)</strong> se encarecen en pesos, desincentivando su consumo local.</li>
+                                </ul>
+                            </div>
+                        `,
+                        tcEq: 5.20,
+                        qEq: 2020,
+                        qdFn: (tc) => 2600 - 150 * tc,
+                        qoFn: (tc) => 1500 + 100 * tc,
+                        shiftedQdFn: (tc) => 2800 - 150 * tc,
+                        shiftedQoFn: null,
+                        statusText: "Devaluación / Depreciación",
+                        concept: "Cuando el TC sube, la moneda nacional se deprecia. Esto estímula las exportaciones y frena las importaciones, tendiendo a un superávit comercial."
+                    },
+                    {
+                        title: "d) Precio Bien Importado",
+                        description: "Calculamos el precio en Pesos ($) de una cosechadora importada de U$S 40.000 (situación inicial).",
+                        mathHTML: `
+                            <div class="bg-slate-100 p-3 rounded-lg border border-slate-300 text-xs space-y-2">
+                                <p class="font-mono"><strong>Fórmula:</strong> Precio en $ = Precio en U$S × TC*</p>
+                                <p class="font-mono text-blue-900">Precio = U$S 40.000 × 4,40 $/U$S = <span class="text-base font-bold text-emerald-600">$ 176.000</span></p>
+                                <p class="text-[11px] text-slate-600">Nota: Al TC del inciso (b) de $5,20, el precio subiría a <strong>$ 208.000</strong>, ilustrando por qué la devaluación encarece el capital importado.</p>
+                            </div>
+                        `,
+                        tcEq: 4.40,
+                        qEq: 1940,
+                        qdFn: (tc) => 2600 - 150 * tc,
+                        qoFn: (tc) => 1500 + 100 * tc,
+                        shiftedQdFn: null,
+                        shiftedQoFn: null,
+                        statusText: "Cálculo de Precios",
+                        concept: "El tipo de cambio actúa como puente de conversión entre los precios nominales externos en moneda extranjera y el costo efectivo interno en moneda local."
+                    }
+                ]
+            },
+
+            8: {
+                title: "Ejercicio 8: TC Flexible y Aumento de Exportaciones",
+                regime: "Régimen Flexible",
+                regimeClass: "bg-emerald-100 text-emerald-800",
+                statement: `
+                    <p>En un sistema de tipo de cambio flexible, las siguientes representan las funciones de Oferta y Demanda de divisas:</p>
+                    <p class="font-mono bg-white p-2 rounded text-center text-blue-900 font-bold border border-slate-200">
+                        Q<sub>D</sub> = 5.000 - 200 · TC &nbsp;&nbsp;|&nbsp;&nbsp; Q<sub>O</sub> = -1.000 + 100 · TC
+                    </p>
+                `,
+                consignas: [
+                    { id: 0, label: "a-", text: "Represente gráficamente el mercado cambiario." },
+                    { id: 1, label: "b-", text: "Calcule el tipo de cambio de equilibrio." },
+                    { id: 2, label: "c-", text: "Suponga que las exportaciones aumentan, de manera que la curva de oferta es la siguiente: Q<sub>O</sub> = 400 + 100 · TC; grafique el cambio ocurrido y calcule nuevamente el tipo de cambio de equilibrio." }
+                ],
+                steps: [
+                    {
+                        title: "a) Graficar Mercado",
+                        description: "Identificación del plano de mercado cambiario con oferta con pendiente positiva y demanda con pendiente negativa.",
+                        mathHTML: `
+                            <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs space-y-1">
+                                <p><strong>Demanda (Q<sub>D</sub>):</strong> Inversa al TC. Si TC sube, importaciones bajan y se demandan menos dólares.</p>
+                                <p><strong>Oferta (Q<sub>O</sub>):</strong> Directa al TC. Si TC sube, exportaciones aumentan e ingresan más dólares.</p>
+                            </div>
+                        `,
+                        tcEq: 20,
+                        qEq: 1000,
+                        qdFn: (tc) => 5000 - 200 * tc,
+                        qoFn: (tc) => -1000 + 100 * tc,
+                        shiftedQdFn: null,
+                        shiftedQoFn: null,
+                        statusText: "Configuración Inicial",
+                        concept: "La oferta de divisas nace de las exportaciones e ingresos de capitales; la demanda surge de las importaciones y salidas de divisas."
+                    },
+                    {
+                        title: "b) Equilibrio Inicial",
+                        description: "Cálculo analítico del tipo de cambio de equilibrio donde Q<sub>D</sub> = Q<sub>O</sub>.",
+                        mathHTML: `
+                            <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs font-mono space-y-1 text-slate-800">
+                                <p>5.000 - 200·TC = -1.000 + 100·TC</p>
+                                <p>5.000 + 1.000 = 100·TC + 200·TC</p>
+                                <p>6.000 = 300·TC</p>
+                                <p><span class="text-blue-700 font-bold">TC* = 6.000 / 300 = 20 $/U$S</span></p>
+                                <p>Q* = -1.000 + 100(20) = <span class="text-emerald-700 font-bold">1.000 unidades</span></p>
+                            </div>
+                        `,
+                        tcEq: 20,
+                        qEq: 1000,
+                        qdFn: (tc) => 5000 - 200 * tc,
+                        qoFn: (tc) => -1000 + 100 * tc,
+                        shiftedQdFn: null,
+                        shiftedQoFn: null,
+                        statusText: "Equilibrio TC = 20",
+                        concept: "El tipo de cambio de equilibrio limpia el mercado (no hay ni escasez ni exceso indeseado de dólares)."
+                    },
+                    {
+                        title: "c) Incremento de Oferta",
+                        description: "Las exportaciones aumentan, desplazando la oferta a: Q<sub>O</sub>' = 400 + 100 · TC.",
+                        mathHTML: `
+                            <div class="bg-purple-50 p-3 rounded-lg border border-purple-200 text-xs font-mono space-y-1 text-slate-800">
+                                <p><strong>Igualación con nueva oferta:</strong></p>
+                                <p>5.000 - 200·TC = 400 + 100·TC</p>
+                                <p>5.000 - 400 = 100·TC + 200·TC</p>
+                                <p>4.600 = 300·TC</p>
+                                <p><span class="text-purple-700 font-bold">TC' = 4.600 / 300 = 15,33 $/U$S</span></p>
+                                <p>Q' = 400 + 100(15.33) = <span class="text-emerald-700 font-bold">1.933 unidades</span></p>
+                                <p class="text-xs font-sans text-amber-800 font-bold mt-1">Efecto: La abundancia de divisas hace caer el precio del dólar (Apreciación del peso).</p>
+                            </div>
+                        `,
+                        tcEq: 15.33,
+                        qEq: 1933,
+                        qdFn: (tc) => 5000 - 200 * tc,
+                        qoFn: (tc) => -1000 + 100 * tc,
+                        shiftedQdFn: null,
+                        shiftedQoFn: (tc) => 400 + 100 * tc,
+                        statusText: "Nuevo Equilibrio (TC = 15,33)",
+                        concept: "Un shock positivo de exportaciones genera una mayor entrada de divisas que expande la oferta, provocando la apreciación de la moneda nacional."
+                    }
+                ]
+            },
+
+            9: {
+                title: "Ejercicio 9: Tipo de Cambio Fijo e Intervención del Banco Central",
+                regime: "Régimen Fijo (TC = 2 $/U$S)",
+                regimeClass: "bg-rose-100 text-rose-800",
+                statement: `
+                    <p>Suponga que hay un sistema de <strong>Tipo de Cambio FIJO</strong>, y que el mismo ha sido fijado en <strong>2 $/U$S</strong>. Las funciones de oferta y demanda son las siguientes:</p>
+                    <p class="font-mono bg-white p-2 rounded text-center text-blue-900 font-bold border border-slate-200">
+                        Q<sub>D</sub> = 10.000 - 3.000 · TC &nbsp;&nbsp;|&nbsp;&nbsp; Q<sub>O</sub> = 2.000 + 1.000 · TC
+                    </p>
+                `,
+                consignas: [
+                    { id: 0, label: "a-", text: "Grafique el mercado cambiario." },
+                    { id: 1, label: "b-", text: "Suponga que aumentan las importaciones, de manera que la demanda pasa a ser igual a: Q<sub>D</sub> = 12.000 - 3.000 · TC; grafique el cambio e indique qué ha sucedido en dicho mercado." },
+                    { id: 2, label: "c-", text: "¿Qué debe hacer la autoridad monetaria para mantener el sistema de tipo de cambio fijo?" }
+                ],
+                steps: [
+                    {
+                        title: "a) Estado al TC Fijo = 2",
+                        description: "Evaluamos las cantidades demandadas y ofrecidas al tipo de cambio oficial fijado por el Banco Central.",
+                        mathHTML: `
+                            <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs font-mono space-y-1">
+                                <p>Al TC = 2 $/U$S:</p>
+                                <p>Q<sub>D</sub> = 10.000 - 3.000(2) = <strong>4.000 divisas</strong></p>
+                                <p>Q<sub>O</sub> = 2.000 + 1.000(2) = <strong>4.000 divisas</strong></p>
+                                <p class="text-emerald-700 font-bold font-sans">Al TC oficial fijado en 2, el mercado está casualmente en equilibrio inicial (Qd = Qo = 4.000).</p>
+                            </div>
+                        `,
+                        tcEq: 2.00,
+                        qEq: 4000,
+                        qdFn: (tc) => 10000 - 3000 * tc,
+                        qoFn: (tc) => 2000 + 1000 * tc,
+                        shiftedQdFn: null,
+                        shiftedQoFn: null,
+                        tcFixed: 2.0,
+                        statusText: "TC Fijo = 2,00 (Equilibrio)",
+                        concept: "En tipo de cambio fijo, el Banco Central se compromete a comprar o vender la cantidad necesaria de divisas para sostener la cotización oficial."
+                    },
+                    {
+                        title: "b) Incremento de Importaciones",
+                        description: "Aumentan las importaciones desplazando la demanda a: Q<sub>D</sub>' = 12.000 - 3.000 · TC.",
+                        mathHTML: `
+                            <div class="bg-purple-50 p-3 rounded-lg border border-purple-200 text-xs font-mono space-y-1">
+                                <p>Evaluando al TC Fijo = 2 $/U$S:</p>
+                                <p>Q<sub>D</sub>' = 12.000 - 3.000(2) = <strong class="text-purple-700">6.000 divisas</strong></p>
+                                <p>Q<sub>O</sub> = 2.000 + 1.000(2) = <strong class="text-emerald-700">4.000 divisas</strong></p>
+                                <p class="text-rose-700 font-bold font-sans mt-2">
+                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Desequilibrio: Exceso de Demanda (Escasez) = 6.000 - 4.000 = 2.000 U$S.
+                                </p>
+                            </div>
+                        `,
+                        tcEq: 2.00,
+                        qEq: 4000,
+                        qdFn: (tc) => 10000 - 3000 * tc,
+                        qoFn: (tc) => 2000 + 1000 * tc,
+                        shiftedQdFn: (tc) => 12000 - 3000 * tc,
+                        shiftedQoFn: null,
+                        tcFixed: 2.0,
+                        statusText: "Exceso de Demanda: 2.000 U$S",
+                        concept: "Un incremento en las importaciones eleva la demanda de dólares. Como el TC no puede subir libremente, se genera un exceso de demanda (presión devaluatoria)."
+                    },
+                    {
+                        title: "c) Intervención del Central",
+                        description: "¿Qué debe hacer la Autoridad Monetaria (Banco Central) para mantener el TC Fijo?",
+                        mathHTML: `
+                            <div class="bg-rose-50 p-3 rounded-lg border border-rose-200 text-xs space-y-2 text-slate-800">
+                                <p class="font-bold text-rose-900">Acción obligatoria del Banco Central:</p>
+                                <p class="bg-white p-2 rounded border border-rose-300 font-semibold">
+                                    <i class="fa-solid fa-building-columns text-rose-600 mr-1"></i> VENDER 2.000 millones de U$S de sus Reservas Internacionales.
+                                </p>
+                                <ul class="list-disc ml-4 space-y-1 text-[11px] text-slate-700">
+                                    <li>Al vender las reservas necesarias, satisface la escasez del mercado y evita que el TC aumente.</li>
+                                    <li><strong>Consecuencia:</strong> Caída en las Reservas Internacionales del Banco Central.</li>
+                                </ul>
+                            </div>
+                        `,
+                        tcEq: 2.00,
+                        qEq: 4000,
+                        qdFn: (tc) => 10000 - 3000 * tc,
+                        qoFn: (tc) => 2000 + 1000 * tc,
+                        shiftedQdFn: (tc) => 12000 - 3000 * tc,
+                        shiftedQoFn: null,
+                        tcFixed: 2.0,
+                        statusText: "BCRA vende 2.000 U$S de Reservas",
+                        concept: "Sostener un tipo de cambio fijo ante un déficit de divisas implica perder reservas internacionales. Si las reservas se agotan, ocurre una crisis cambiaria."
+                    }
+                ]
+            }
+        };
+
+        // Render current exercise state
+        function renderExercise() {
+            const data = exercisesData[currentExercise];
+            const stepData = data.steps[currentStep];
+
+            // Render Header & Statement
+            document.getElementById('ex-badge').innerText = `EJERCICIO ${currentExercise}`;
+            document.getElementById('regime-badge').innerText = data.regime;
+            document.getElementById('regime-badge').className = `text-xs font-medium px-2.5 py-1 rounded flex items-center gap-1 ${data.regimeClass}`;
+            document.getElementById('ex-title').innerText = data.title;
+            document.getElementById('ex-statement').innerHTML = data.statement;
+
+            // Render Consignas List
+            const consignasUl = document.getElementById('ex-consignas');
+            consignasUl.innerHTML = '';
+            data.consignas.forEach((c) => {
+                const isActive = (c.id === currentStep);
+                const li = document.createElement('li');
+                li.className = `p-1.5 rounded transition cursor-pointer flex items-start gap-1.5 ${isActive ? 'bg-blue-100/70 border-l-4 border-blue-600 font-semibold text-blue-900' : 'hover:bg-slate-100 text-slate-600'}`;
+                li.onclick = () => { currentStep = c.id; renderExercise(); };
+                li.innerHTML = `
+                    <span class="font-bold font-mono text-blue-700">${c.label}</span>
+                    <span class="leading-snug">${c.text}</span>
+                `;
+                consignasUl.appendChild(li);
+            });
+
+            // Render Step Tabs
+            const tabsContainer = document.getElementById('step-tabs');
+            tabsContainer.innerHTML = '';
+            data.steps.forEach((step, idx) => {
+                const tabBtn = document.createElement('button');
+                tabBtn.className = `py-1.5 px-2 rounded-lg transition ${idx === currentStep ? 'bg-white text-blue-700 shadow-sm font-bold' : 'text-slate-500 hover:text-slate-800'}`;
+                tabBtn.innerText = `Paso ${idx + 1}`;
+                tabBtn.onclick = () => { currentStep = idx; renderExercise(); };
+                tabsContainer.appendChild(tabBtn);
+            });
+
+            // Render Current Step Container
+            document.getElementById('step-indicator').innerText = `Paso ${currentStep + 1} de ${data.steps.length}`;
+            const stepContainer = document.getElementById('step-container');
+            stepContainer.innerHTML = `
+                <h4 class="font-bold text-slate-900 text-sm">${stepData.title}</h4>
+                <p class="text-xs text-slate-600">${stepData.description}</p>
+                ${stepData.mathHTML}
+            `;
+
+            // Step Button Disabled States
+            document.getElementById('prev-step-btn').disabled = (currentStep === 0);
+            document.getElementById('next-step-btn').disabled = (currentStep === data.steps.length - 1);
+
+            // Render Theory Concept
+            document.getElementById('theory-concept').innerText = stepData.concept;
+
+            // Render Stat Cards
+            document.getElementById('stat-tc').innerText = `$ ${stepData.tcEq.toFixed(2)}`;
+            document.getElementById('stat-q').innerText = stepData.qEq.toLocaleString('es-AR');
+            document.getElementById('stat-status').innerText = stepData.statusText;
+
+            // Show / Hide Legend Badge for Shift
+            const shiftBadge = document.getElementById('shift-legend-badge');
+            if (stepData.shiftedQdFn || stepData.shiftedQoFn) {
+                shiftBadge.classList.remove('hidden');
+            } else {
+                shiftBadge.classList.add('hidden');
+            }
+
+            // Update Chart
+            updateChart(data, stepData);
+
+            // Recalculate Simulator Prices
+            calculateSimulatedPrices();
+        }
+
+        // Step Navigation Handlers
+        function nextStep() {
+            const data = exercisesData[currentExercise];
+            if (currentStep < data.steps.length - 1) {
+                currentStep++;
+                renderExercise();
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                renderExercise();
+            }
+        }
+
+        // Tab Switching Handler
+        function switchTab(exNumber) {
+            currentExercise = exNumber;
+            currentStep = 0;
+
+            // Update Tab Button Styles
+            [7, 8, 9].forEach(num => {
+                const btn = document.getElementById(`tab-btn-${num}`);
+                if (num === exNumber) {
+                    btn.className = "px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white shadow-md hover:bg-blue-500 transition";
+                } else {
+                    btn.className = "px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition";
+                }
+            });
+
+            renderExercise();
+        }
+
+        // Price Simulator Logic
+        function calculateSimulatedPrices() {
+            const usdInput = document.getElementById('sim-usd-price');
+            const arsOutput = document.getElementById('sim-ars-price');
+            
+            const usdVal = parseFloat(usdInput.value) || 0;
+            const currentTc = exercisesData[currentExercise].steps[currentStep].tcEq;
+            
+            const arsTotal = usdVal * currentTc;
+            arsOutput.value = `$ ${arsTotal.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        // Chart.js Visualization Logic
+        function updateChart(data, stepData) {
+            const ctx = document.getElementById('marketChart').getContext('2d');
+
+            // Determine TC plot range
+            let tcMin = 1, tcMax = 7;
+            if (currentExercise === 8) {
+                tcMin = 5; tcMax = 35;
+            } else if (currentExercise === 9) {
+                tcMin = 0.5; tcMax = 3.5;
+            }
+
+            const stepCount = 30;
+            const qdPoints = [];
+            const qoPoints = [];
+            const shiftedQdPoints = [];
+            const shiftedQoPoints = [];
+
+            for (let i = 0; i <= stepCount; i++) {
+                const tc = tcMin + (i * (tcMax - tcMin) / stepCount);
+                
+                // For scatter line (X = Q, Y = TC)
+                qdPoints.push({ x: stepData.qdFn(tc), y: tc });
+                qoPoints.push({ x: stepData.qoFn(tc), y: tc });
+
+                if (stepData.shiftedQdFn) {
+                    shiftedQdPoints.push({ x: stepData.shiftedQdFn(tc), y: tc });
+                }
+                if (stepData.shiftedQoFn) {
+                    shiftedQoPoints.push({ x: stepData.shiftedQoFn(tc), y: tc });
+                }
+            }
+
+            const datasets = [
+                {
+                    label: 'Demanda de Divisas (Qd)',
+                    data: qdPoints,
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    showLine: true
+                },
+                {
+                    label: 'Oferta de Divisas (Qo)',
+                    data: qoPoints,
+                    borderColor: '#059669',
+                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    showLine: true
+                }
+            ];
+
+            if (stepData.shiftedQdFn) {
+                datasets.push({
+                    label: 'Demanda Incrementada (Qd\')',
+                    data: shiftedQdPoints,
+                    borderColor: '#9333ea',
+                    borderDash: [6, 6],
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    showLine: true
+                });
+            }
+
+            if (stepData.shiftedQoFn) {
+                datasets.push({
+                    label: 'Oferta Incrementada (Qo\')',
+                    data: shiftedQoPoints,
+                    borderColor: '#9333ea',
+                    borderDash: [6, 6],
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    showLine: true
+                });
+            }
+
+            // Fixed TC horizontal line for Exercise 9
+            if (stepData.tcFixed) {
+                datasets.push({
+                    label: `TC Fijo (${stepData.tcFixed} $/U$S)`,
+                    data: [
+                        { x: 0, y: stepData.tcFixed },
+                        { x: 8000, y: stepData.tcFixed }
+                    ],
+                    borderColor: '#e11d48',
+                    borderDash: [4, 4],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    showLine: true
+                });
+            }
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: 'Inter', size: 11 },
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: (items) => `Punto del Mercado`,
+                                label: (context) => `${context.dataset.label}: Cantidad = ${Math.round(context.raw.x).toLocaleString('es-AR')} U$S | TC = $${context.raw.y.toFixed(2)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Divisas (Q en U$S)',
+                                font: { family: 'Inter', size: 12, weight: 'bold' }
+                            },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        y: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Tipo de Cambio (TC en $/U$S)',
+                                font: { family: 'Inter', size: 12, weight: 'bold' }
+                            },
+                            grid: { color: '#f1f5f9' },
+                            min: tcMin,
+                            max: tcMax
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize application on load
+        window.onload = function() {
+            renderExercise();
+        };
+    </script>
+</body>
+</html>

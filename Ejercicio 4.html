@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ejercicio 4 | Práctico 8 - Sector Externo</title>
+<style>
+:root{--navy:#123b63;--blue:#1e5b8f;--red:#b52332;--pale:#eff6ff;--ink:#1e293b;--muted:#64748b;--line:#d7e0ea;--green:#166534}
+*{box-sizing:border-box} body{margin:0;background:#eaf0f6;color:var(--ink);font:16px/1.5 Arial,Helvetica,sans-serif}
+header{background:var(--navy);color:white;padding:22px max(20px,calc((100% - 1050px)/2));border-bottom:5px solid var(--red)}
+.kicker{font-size:.78rem;letter-spacing:.08em;color:#d8e8f5;font-weight:bold}
+h1{font-size:clamp(1.5rem,4vw,2.25rem);line-height:1.15;margin:8px 0}
+header p{margin:6px 0 0;color:#d8e8f5}
+main{max-width:1050px;margin:24px auto;padding:0 16px}
+.panel{background:white;border:1px solid var(--line);border-radius:15px;box-shadow:0 8px 28px #173b5c12;overflow:hidden}
+.top{padding:18px 22px;background:#f8fafc;border-bottom:1px solid var(--line)}
+.progressrow{display:flex;justify-content:space-between;gap:12px;font-size:.85rem;font-weight:bold;color:var(--navy)}
+.progress{display:flex;gap:5px;margin-top:10px}.progress span{height:7px;flex:1;background:#d5dee8;border-radius:9px}.progress span.active{background:var(--red)}
+.content{padding:clamp(18px,4vw,32px)}
+.tag{display:inline-block;background:#e4eff8;color:var(--navy);padding:4px 10px;border-radius:20px;font-size:.75rem;font-weight:bold}
+h2{font-size:clamp(1.35rem,3vw,1.8rem);color:var(--navy);margin:12px 0 18px}
+h3{color:var(--navy);margin:18px 0 8px}
+p{margin:9px 0}.data{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.datacard{background:#f4f7fa;border:1px solid var(--line);border-radius:10px;padding:13px}
+.datacard small{display:block;color:var(--muted);font-weight:bold;font-size:.75rem}.datacard strong{display:block;color:var(--navy);font-size:1.35rem;margin-top:3px}
+table{border-collapse:collapse;width:100%;margin:12px 0 16px}th,td{border:1px solid var(--line);padding:10px;text-align:center}th{background:#eaf1f8;color:var(--navy)}
+.formula{background:var(--pale);border-left:4px solid var(--blue);padding:14px;border-radius:7px;text-align:center;color:var(--navy);font-size:clamp(1.05rem,3vw,1.4rem);font-weight:bold;margin:12px 0}
+.note{font-size:.9rem;color:var(--muted)}
+.result{display:none;background:#eaf6ed;border:1px solid #c8e5ce;border-radius:10px;padding:15px;margin:14px 0;color:var(--green)}
+.result.show{display:block}.result strong.big{display:block;font-size:1.65rem;margin:3px 0}
+.callout{padding:15px;border-radius:10px;margin:12px 0}.good{background:#eaf6ed;color:#14532d}.warn{background:#fff4df;color:#854d0e}.dark{background:var(--navy);color:white}
+.controls{display:flex;justify-content:space-between;gap:10px;padding:16px 22px;background:#f8fafc;border-top:1px solid var(--line)}
+button{border:0;border-radius:8px;padding:11px 17px;font-weight:bold;font-size:.95rem;cursor:pointer;background:var(--blue);color:white}
+button:hover{filter:brightness(.94)}button.secondary{background:white;color:var(--navy);border:1px solid #b8c7d6}button:disabled{opacity:.4;cursor:not-allowed}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:16px}
+@media(max-width:620px){.data{grid-template-columns:1fr}.controls{padding:13px}.controls button{padding:10px 12px}}
+@media print{body{background:white}.controls,button{display:none!important}.panel{box-shadow:none}.result{display:block}.content{padding:10px}.step{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header><div class="kicker">UNIVERSIDAD NACIONAL DE VILLA MARÍA · ANÁLISIS ECONÓMICO</div>
+<h1>Resolución guiada · Ejercicio 4</h1><p>Práctico 8 — Sector Externo · Tipo de cambio, devaluación y política comercial</p></header>
+<main>
+<section class="panel">
+<div class="top"><div class="progressrow"><span>PROGRESO DE LA CLASE</span><span id="counter">1 / 7</span></div><div class="progress" id="progress"></div></div>
+<div class="content" id="content"></div>
+<div class="controls"><button class="secondary" id="prev">← Anterior</button><button id="next">Siguiente →</button></div>
+</section>
+<footer>Material didáctico · Práctico 8 · 2026</footer>
+</main>
+<script>
+const steps = [
+`<span class="tag">PUNTO DE PARTIDA</span><h2>Los datos del ejercicio</h2>
+<p>Antes de calcular, identificamos qué operación comercial realiza Argentina y en qué moneda está expresado cada precio.</p>
+<div class="data">
+<div class="datacard"><small>EXPORTACIÓN</small><strong>$18.800</strong>Cartera de cuero vendida a EE.UU.</div>
+<div class="datacard"><small>IMPORTACIÓN</small><strong>U$S 1.700</strong>Computadora comprada a EE.UU.</div>
+<div class="datacard"><small>TIPO DE CAMBIO</small><strong>$128,50</strong>Por cada dólar</div></div>
+<div class="callout dark"><b>Regla básica</b><br>U$S 1 equivale a $128,50. Esa equivalencia será nuestra base para todas las conversiones.</div>
+<p class="note">En cada inciso conviene identificar primero la moneda de origen y la moneda a la que queremos llegar.</p>`,
+`<span class="tag">INCISO A</span><h2>Convertir pesos a dólares</h2>
+<p><b>Pregunta:</b> ¿Cuál es el precio de la cartera de cuero en moneda norteamericana?</p>
+<h3>1. Armamos la equivalencia</h3>
+<table><tr><th>Pesos</th><th>Dólares</th></tr><tr><td>$128,50</td><td>U$S 1</td></tr><tr><td>$18.800</td><td>X</td></tr></table>
+<h3>2. Aplicamos regla de tres simple</h3>
+<div class="formula">X = (18.800 × 1) ÷ 128,50</div>
+<button onclick="toggleResult('r1')">Mostrar resultado</button>
+<div class="result" id="r1"><b>Resultado del inciso A</b><strong class="big">U$S 146,30</strong>La cartera cuesta aproximadamente 146,30 dólares.</div>
+<p class="note">Como convertimos pesos a dólares, dividimos por la cantidad de pesos que equivale a un dólar.</p>`,
+`<span class="tag">INCISO B</span><h2>Convertir dólares a pesos</h2>
+<p><b>Pregunta:</b> ¿Cuál es el precio de la computadora en moneda nacional?</p>
+<h3>1. Armamos la equivalencia</h3>
+<table><tr><th>Dólares</th><th>Pesos</th></tr><tr><td>U$S 1</td><td>$128,50</td></tr><tr><td>U$S 1.700</td><td>X</td></tr></table>
+<h3>2. Aplicamos regla de tres simple</h3>
+<div class="formula">X = (1.700 × 128,50) ÷ 1</div>
+<button onclick="toggleResult('r2')">Mostrar resultado</button>
+<div class="result" id="r2"><b>Resultado del inciso B</b><strong class="big">$218.450</strong>La computadora cuesta $218.450 en moneda nacional.</div>
+<p class="note">Ahora multiplicamos: cada dólar equivale a $128,50 y tenemos 1.700 dólares.</p>`,
+`<span class="tag">INCISO C</span><h2>Una devaluación del 15%</h2>
+<p>Una devaluación implica que se necesitan más pesos para comprar un dólar. Primero calculamos el nuevo tipo de cambio.</p>
+<h3>1. Calculamos el 15% del tipo de cambio inicial</h3>
+<table><tr><th>Tipo de cambio</th><th>Porcentaje</th></tr><tr><td>$128,50</td><td>100%</td></tr><tr><td>X</td><td>15%</td></tr></table>
+<div class="formula">X = (128,50 × 15) ÷ 100 = $19,275</div>
+<h3>2. Sumamos el aumento</h3><div class="formula">$128,50 + $19,275 = $147,775</div>
+<h3>3. Recalculamos los precios con el nuevo tipo de cambio</h3>
+<p><b>Cartera:</b> X = 18.800 ÷ 147,775</p><p><b>Computadora:</b> X = 1.700 × 147,775</p>
+<button onclick="toggleResult('r3')">Mostrar nuevos precios</button>
+<div class="result" id="r3"><b>Nuevos precios</b><strong class="big">Cartera: U$S 127,22</strong><strong class="big">Computadora: $251.217,50</strong></div>
+<p class="note">Se conservan los precios originales en sus respectivas monedas; solo cambia el tipo de cambio.</p>`,
+`<span class="tag">INCISO D</span><h2>¿Qué efecto tiene la devaluación?</h2>
+<p>Comparamos los precios expresados en la moneda relevante para cada comprador.</p>
+<table><tr><th>Producto</th><th>Situación inicial</th><th>Con devaluación</th></tr><tr><td>Cartera (U$S)</td><td>146,30</td><td>127,22</td></tr><tr><td>Computadora ($)</td><td>218.450</td><td>251.217,50</td></tr></table>
+<div class="callout good"><b>Exportaciones</b><br>La cartera argentina se abarata en dólares. Esto puede hacerla más atractiva para los compradores extranjeros.</div>
+<div class="callout warn"><b>Importaciones</b><br>La computadora importada se encarece en pesos. Esto puede desalentar su compra por parte de los residentes.</div>
+<p class="note">La conclusión supone que los demás factores permanecen constantes. La variación de precios relativos no garantiza por sí sola cambios efectivos en las cantidades comerciadas.</p>`,
+`<span class="tag">INCISO E</span><h2>Arancel del 15% a las importaciones</h2>
+<p>Volvemos a los datos iniciales: tipo de cambio de $128,50 por dólar. El precio de la computadora en pesos era $218.450.</p>
+<h3>1. Calculamos el arancel</h3>
+<table><tr><th>Precio</th><th>Porcentaje</th></tr><tr><td>$218.450</td><td>100%</td></tr><tr><td>X</td><td>15%</td></tr></table>
+<div class="formula">X = (218.450 × 15) ÷ 100 = $32.767,50</div>
+<h3>2. Sumamos el arancel al precio</h3><div class="formula">$218.450 + $32.767,50 = $251.217,50</div>
+<button onclick="toggleResult('r5')">Mostrar resultado</button>
+<div class="result" id="r5"><b>Precio interno con arancel</b><strong class="big">$251.217,50</strong>Arancel: $32.767,50.</div>
+<p class="note">Supuesto didáctico: el arancel se traslada íntegramente al precio interno y no hay otros costos ni márgenes adicionales.</p>`,
+`<span class="tag">INCISO F</span><h2>Retenciones del 10% a las exportaciones</h2>
+<p>Volvemos nuevamente a los datos iniciales. El precio de la cartera es $18.800.</p>
+<h3>1. Calculamos la retención</h3>
+<table><tr><th>Precio</th><th>Porcentaje</th></tr><tr><td>$18.800</td><td>100%</td></tr><tr><td>X</td><td>10%</td></tr></table>
+<div class="formula">X = (18.800 × 10) ÷ 100 = $1.880</div>
+<h3>2. Calculamos el ingreso neto del exportador</h3><div class="formula">$18.800 − $1.880 = $16.920</div>
+<button onclick="toggleResult('r6')">Mostrar resultado</button>
+<div class="result" id="r6"><b>Ingreso neto del exportador</b><strong class="big">$16.920</strong>Retención: $1.880.</div>
+<p class="note">Interpretamos que la retención se descuenta del valor de exportación que recibe el exportador.</p>`,
+`<span class="tag">INCISO G</span><h2>Conclusiones económicas</h2>
+<div class="callout dark"><b>Devaluación del 15%</b><br>Reduce el precio en dólares de la exportación y eleva el precio en pesos de la importación, bajo los supuestos del ejercicio.</div>
+<div class="callout good"><b>Arancel del 15%</b><br>Eleva el precio interno del producto importado y puede reducir su demanda.</div>
+<div class="callout warn"><b>Retención del 10%</b><br>Reduce el ingreso neto del exportador y puede desincentivar la oferta exportable.</div>
+<h3>Idea central para recordar</h3>
+<p>Las tres medidas modifican los precios relativos entre bienes nacionales y extranjeros, pero operan mediante mecanismos diferentes.</p>
+<div class="callout" style="background:#f1f5f9"><b>Para discutir en clase:</b> ¿Cuál de estas medidas modifica el tipo de cambio y cuáles modifican directamente el precio de los bienes comercializados?</div>`
+];
+let current=0;
+function toggleResult(id){const el=document.getElementById(id);el.classList.toggle('show');}
+function render(){document.getElementById('content').innerHTML=steps[current];document.getElementById('counter').textContent=(current+1)+' / '+steps.length;document.getElementById('progress').innerHTML=steps.map((_,i)=>`<span class="${i<=current?'active':''}"></span>`).join('');document.getElementById('prev').disabled=current===0;document.getElementById('next').disabled=current===steps.length-1;document.getElementById('next').textContent=current===steps.length-1?'Finalizado':'Siguiente →';}
+document.getElementById('prev').addEventListener('click',()=>{if(current>0){current--;render();}});
+document.getElementById('next').addEventListener('click',()=>{if(current<steps.length-1){current++;render();}});
+render();
+</script>
+</body></html>

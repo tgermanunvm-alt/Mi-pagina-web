@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Balanza de Pagos · Ejercicio 3 · Tablero didáctico</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#1a2230;--mut:#59657a;--navy:#1f3a5f;--sub:#d6e4f3;--blk:#0d0d0d;--gold:#b88a00;--pos:#12693a;--neg:#b3261e;--line:#c9d1dd;--hi:#fff1bf;--chip:#e6ebf3;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1420;--card:#161f31;--ink:#e8edf5;--mut:#9aa7ba;--navy:#2d5186;--sub:#223853;--blk:#04070b;--gold:#e3bd45;--pos:#62d492;--neg:#ff8f86;--line:#2b3a53;--hi:#4a4015;--chip:#22304a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1420;--card:#161f31;--ink:#e8edf5;--mut:#9aa7ba;--navy:#2d5186;--sub:#223853;--blk:#04070b;--gold:#e3bd45;--pos:#62d492;--neg:#ff8f86;--line:#2b3a53;--hi:#4a4015;--chip:#22304a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+header{padding:18px clamp(14px,3vw,32px) 6px}
+h1{margin:0;font-size:clamp(20px,3vw,28px);font-weight:600;letter-spacing:-.01em}
+header p{margin:2px 0 0;color:var(--mut)}
+main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;padding:12px clamp(14px,3vw,32px) 32px;align-items:start}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:480px;font-size:14px}
+td{border:1px solid var(--line);padding:5px 8px;height:30px}
+td.n{text-align:right;width:84px;font-variant-numeric:tabular-nums}
+thead td{background:var(--navy);color:#fff;font-weight:600;text-align:center}
+tr.h1 td{background:var(--blk);color:#fff;font-weight:600}
+tr.h1 td.s,tr.h2 td.s,tr.eq td.s{text-align:right;font-variant-numeric:tabular-nums}
+tr.h2 td{background:var(--sub);font-weight:500}
+tr.eq td{background:var(--navy);color:#fff;font-weight:600}
+tr.res td:first-child{background:var(--sub);font-weight:500}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+tr.h1 .pos,tr.eq .pos{color:#7be0a6}tr.h1 .neg,tr.eq .neg{color:#ffa39b}
+tr.new td{animation:fl 1.6s ease-out}
+@keyframes fl{from{background:var(--hi)}}
+@media (prefers-reduced-motion:reduce){tr.new td{animation:none;background:var(--hi)}}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+button{font:inherit;border:1px solid var(--navy);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:6px;cursor:pointer}
+button.pri{background:var(--navy);color:#fff}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+button:disabled{opacity:.4;cursor:default}
+label{display:flex;gap:6px;align-items:center;color:var(--mut);cursor:pointer}
+.cur{border-left:4px solid var(--gold);padding:2px 0 2px 12px;margin-bottom:12px;min-height:130px}
+.cur h2{margin:0 0 4px;font-size:17px}
+.tag{display:inline-block;background:var(--chip);border-radius:4px;padding:1px 8px;margin:0 6px 6px 0;font-size:13px;font-weight:500}
+.rule{font-size:13px;color:var(--mut);border-top:1px solid var(--line);padding-top:10px;margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+.chips button{padding:4px 10px;font-size:13px;background:var(--chip);border-color:transparent}
+.chips button.on{background:var(--navy);color:#fff}
+.chips button.cu{outline:2px solid var(--gold)}
+.q{margin-top:16px}
+.q h3{margin:0 0 8px;font-size:15px}
+.q div.c{border-top:1px solid var(--line);padding:8px 0;color:var(--mut)}
+.q div.c b{color:var(--ink)}
+.q div.c.ok{color:var(--ink)}
+</style>
+</head>
+<body>
+<header>
+<h1>Balanza de Pagos: ejercicio 3</h1>
+<p>Análisis Económico 2026 · Práctico 8, Sector Externo. Ubicá cada transacción en el esquema.</p>
+</header>
+<main>
+<section class="panel scroll" aria-label="Esquema de la balanza de pagos"><table id="t"></table></section>
+<section>
+<div class="panel">
+<div class="ctl">
+<button id="prev">Anterior</button>
+<button id="next" class="pri">Siguiente</button>
+<button id="rst">Reiniciar</button>
+
+</div>
+<div class="cur" id="cur" aria-live="polite"></div>
+<div class="rule"><b>Regla de signos.</b> Ingreso: entra una divisa. Egreso: sale una divisa. En la cuenta financiera, VNP es el aumento neto de pasivos con el exterior (entra capital) y VNA el aumento neto de activos (sale capital). Saldo financiero = VNP − VNA.</div>
+<div class="chips" id="chips"></div>
+</div>
+<div class="panel q" id="q"></div>
+</section>
+</main>
+<script>
+const I=[
+{n:"Venta de trigo",v:600,c:"ing",s:"com",w:"Es una exportación de bienes: entran divisas. Va en Cuenta Corriente, Balanza Comercial, columna Ingresos."},
+{n:"Exportaciones de soja",v:1300,c:"ing",s:"com",w:"Otra exportación de bienes: entran divisas. Balanza Comercial, Ingresos."},
+{n:"Compra de bienes de capital",v:1200,c:"egr",s:"com",w:"Es una importación de bienes (maquinaria, equipo): salen divisas. Balanza Comercial, columna Egresos."},
+{n:"Exportaciones de servicios",v:300,c:"ing",s:"ser",w:"Venta de servicios al exterior (fletes, turismo, consultoría): entran divisas. Cuenta Corriente, Servicios, Ingresos."},
+{n:"Importaciones de servicios",v:1000,c:"egr",s:"ser",w:"Compra de servicios a no residentes: salen divisas. Servicios, columna Egresos."},
+{n:"Cuenta ingresos o rentas",v:200,c:"ing",s:"ren",w:"Rentas de factores: intereses y utilidades. El enunciado da $200 sin indicar sentido; se toma como renta neta recibida (Ingresos). Si fueran pagos al exterior irían en Egresos."},
+{n:"Transferencias corrientes",v:250,c:"ing",s:"tra",w:"Transacciones sin contrapartida (remesas, donaciones). Se toman como recibidas: Ingresos. Cierran la Cuenta Corriente."},
+{n:"Cuenta capital",v:300,c:"ing",s:"cap",w:"Transferencias de capital y adquisición de activos no financieros (tierras, intangibles). Se toma como saldo a favor de $300."},
+{n:"Compra de una empresa fabril nacional",v:900,c:"vnp",s:"fin",w:"Un no residente compra una empresa local: inversión directa extranjera. Aumenta un pasivo del país con el exterior, por eso es VNP. Entran divisas."},
+{n:"Compra de activos extranjeros por residentes",v:1500,c:"vna",s:"fin",w:"Residentes adquieren activos en el exterior: aumenta un activo del país, por eso es VNA. Salen divisas."},
+{n:"Variación de reservas",v:0,c:"vna",s:"fin",res:1,w:""}
+];
+const sg=x=>(x.c==="ing"||x.c==="vnp")?x.v:-x.v;
+I[10].v=I.slice(0,10).reduce((a,x)=>a+sg(x),0);
+I.forEach((x,i)=>x.id=i);
+I.splice(0,I.length,...[9,0,4,7,6,5,-1,1,8,2,3,10].map(i=>i<0?{id:99,n:"Errores y omisiones",v:0,c:"ing",s:"err",w:"Partida de ajuste por transacciones no captadas. El enunciado indica $0, así que no modifica ningún saldo."}:I[i]));
+const N=I.length,$=n=>"$"+Math.abs(n).toLocaleString("es-AR"),
+sd=n=>n==null?"":(n>0?"+":n<0?"−":"")+Math.abs(n).toLocaleString("es-AR"),
+cl=n=>n>0?"pos":n<0?"neg":"";
+const L=[["h1","1 - CUENTA CORRIENTE","cc"],["h2","1. Balanza Comercial","com"],["r",0],["r",1],["r",2],["h2","2. Servicios","ser"],["r",3],["r",4],["h2","3. Ingresos","ren"],["r",5],["h2","4. Transferencias","tra"],["r",6],
+["h1","2 - CUENTA CAPITAL <small>(transf. de capital unilaterales + adquisición de tierras y/o activos intangibles)</small>","cap"],["r",7],
+["f","3 - CUENTA FINANCIERA <small>(Inv. directa + Inv. de cartera + Otras inversiones + Var. de Reservas)</small>","fin"],["r",8],["r",9],["r",10],["err"],["eq"]];
+const SEC={cc:["com","ser","ren","tra"]};
+let placed=0,pending=false,last=-1;
+
+function sal(k){const ss=SEC[k]||[k];const a=I.slice(0,placed).filter(x=>ss.includes(x.s));return a.length?a.reduce((t,x)=>t+sg(x),0):null}
+function tot(){return I.slice(0,placed).reduce((t,x)=>t+sg(x),0)}
+function draw(){
+let h='<thead><tr><td style="text-align:left"></td><td class="n">Ingresos</td><td class="n">Egresos</td><td class="n">Saldos</td></tr></thead><tbody>';
+for(const e of L){
+const t=e[0];
+if(t==="h1"||t==="h2"){const s=sal(e[2]);h+=`<tr class="${t}"><td colspan="3">${e[1]}</td><td class="s ${cl(s)}">${sd(s)}</td></tr>`}
+else if(t==="f"){const s=sal("fin");h+=`<tr class="h1"><td>${e[1]}</td><td class="n" style="text-align:center">VNP</td><td class="n" style="text-align:center">VNA</td><td class="s ${cl(s)}">${sd(s)}</td></tr>`}
+else if(t==="r"){const p=I.findIndex(y=>y.id===e[1]),x=I[p],on=p<placed;
+const a=on&&(x.c==="ing"||x.c==="vnp")?$(x.v):"",b=on&&(x.c==="egr"||x.c==="vna")?$(x.v):"";
+let lab=on?x.n:"";
+if(x.res)lab=on?"Variación de Reservas (ingresos de divisas − egresos de divisas)":"";
+h+=`<tr class="${x.res?"res ":""}${on&&p===last?"new":""}"><td>${lab}</td><td class="n">${a}</td><td class="n">${b}</td><td></td></tr>`}
+else if(t==="err"){h+=`<tr><td colspan="3">Errores y Omisiones</td><td class="n">${I.findIndex(y=>y.id===99)<placed?"0":""}</td></tr>`}
+else{const s=placed?tot():null;h+=`<tr class="eq"><td colspan="3">EQUILIBRIO DE LA BALANZA DE PAGOS (Cta.Cte. + Cta.Cap. + Cta.Financ.)</td><td class="s ${cl(s)}">${s==null?"":s===0?"0":sd(s)}</td></tr>`}
+}
+document.getElementById("t").innerHTML=h+"</tbody>";
+const cur=document.getElementById("cur");
+if(pending){const x=I[placed];cur.innerHTML=x.res?`<h2>Último paso: ${placed+1} de ${N}</h2><p>Con todo registrado, ¿cómo se cierra la balanza? ¿Dónde y en qué columna se anota el saldo que queda?</p>`:`<h2>Transacción ${placed+1} de ${N}</h2><p style="font-size:17px;margin:4px 0 8px"><b>${x.n}: ${$(x.v)}</b></p>`}
+else if(placed===0){cur.innerHTML=`<h2>Empecemos</h2><p>El esquema está vacío. Hay ${N-1} transacciones del enunciado y un último paso: la variación de reservas, que cierra la balanza. Tocá Mostrar transacción para leer la primera.</p>`}
+else{const x=I[placed-1];let why=x.w,tag;
+if(x.res){const k=sal("cc"),c=sal("cap"),f=I.slice(0,N-1).reduce((t,y)=>y.s==="fin"?t+sg(y):t,0);
+why=`Antes de reservas: Cuenta Corriente ${sd(k)} + Cuenta Capital ${sd(c)} + Cuenta Financiera ${sd(f)} = ${sd(k+c+f)}. Ese superávit de divisas se acumula como reservas: aumento de activos, por eso va en VNA. Así la balanza cierra en 0.`;
+tag=["Cuenta Financiera","VNA"]}
+else{const m={com:"Cuenta Corriente › Balanza Comercial",ser:"Cuenta Corriente › Servicios",ren:"Cuenta Corriente › Ingresos",tra:"Cuenta Corriente › Transferencias",cap:"Cuenta Capital",fin:"Cuenta Financiera",err:"Errores y Omisiones"};
+tag=[m[x.s],x.s==="err"?"Sin columna":{ing:"Ingresos",egr:"Egresos",vnp:"VNP",vna:"VNA"}[x.c]]}
+cur.innerHTML=`<h2>${x.n}: ${$(x.v)}</h2><span class="tag">${tag[0]}</span><span class="tag">${tag[1]}</span><p>${why}</p>`}
+document.getElementById("chips").innerHTML=I.map((x,i)=>`<button data-i="${i}" class="${i<placed?"on":""} ${(pending?i===placed:i===placed-1)?"cu":""}" title="${x.n}">${i+1}</button>`).join("");
+document.getElementById("prev").disabled=!placed&&!pending;
+document.getElementById("next").disabled=placed>=N;document.getElementById("next").textContent=pending?"Registrar en el esquema":"Mostrar transacción";
+const com=sal("com"),cc=sal("cc"),tt=tot();
+const Q=[
+[true,"a. Definí qué es la Balanza de Pagos.","Es el registro sistemático de todas las transacciones económicas entre residentes y no residentes durante un período. Se organiza en Cuenta Corriente, Cuenta Capital y Cuenta Financiera."],
+[placed>=10,"b. Saldo de la Balanza Comercial.",`Exportaciones de bienes ($600 + $1.300) − importaciones de bienes ($1.200) = ${sd(com)}. Superávit comercial: por bienes entran más divisas de las que salen.`],
+[placed>=11,"c. Saldo de la Cuenta Corriente.",`Comercial ${sd(sal("com"))} + Servicios ${sd(sal("ser"))} + Ingresos ${sd(sal("ren"))} + Transferencias ${sd(sal("tra"))} = ${sd(cc)}.`],
+[placed>=N,"d. Estructura y saldo de la Balanza de Pagos.",`Cuenta Corriente ${sd(cc)} + Cuenta Capital ${sd(sal("cap"))} + Cuenta Financiera ${sd(sal("fin"))} (incluye reservas) = ${sd(tt)||"0"}. Con errores y omisiones en 0, la balanza queda en equilibrio.`]
+];
+document.getElementById("q").innerHTML="<h3>Consignas del ejercicio</h3>"+Q.map(r=>`<div class="c ${r[0]?"ok":""}"><b>${r[1]}</b><br>${r[0]?r[2]:"Se completa al ubicar los ítems necesarios."}</div>`).join("");
+}
+function go(d){
+if(d>0){if(placed>=N)return;if(!pending){pending=true}else{pending=false;last=placed;placed++}}
+else{if(pending){pending=false}else if(placed>0){placed--;last=-1;pending=true}}
+draw()}
+document.getElementById("next").onclick=()=>go(1);
+document.getElementById("prev").onclick=()=>go(-1);
+document.getElementById("rst").onclick=()=>{placed=0;pending=false;last=-1;draw()};
+document.getElementById("chips").onclick=e=>{const b=e.target.closest("button");if(!b)return;placed=+b.dataset.i;pending=true;last=-1;draw()};
+
+document.addEventListener("keydown",e=>{if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(-1)});
+draw();
+</script>
+</body>
+</html>
